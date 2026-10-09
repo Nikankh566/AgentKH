@@ -6,7 +6,9 @@
 
 ### A tiny friend that lives at the top of your screen — and actually does things for you.
 
-<img src="docs/media/pulse.gif" width="330" alt="Agent KH island pulsing for approval">
+<img src="docs/media/hero.gif" width="360" alt="Agent KH island — alive">
+
+*He blinks. He breathes. He watches your cursor.*
 
 Chat with him, watch him work, approve his actions — all from the island.
 No browser tabs, no terminal windows, no fuss.
@@ -24,20 +26,21 @@ No browser tabs, no terminal windows, no fuss.
 
 ---
 
-## ✨ What it feels like
-
 <div align="center">
 
-| | |
-|---|---|
-| <img src="docs/media/island.png" width="280" alt="Island"> | <img src="docs/media/hearts.png" width="280" alt="Hearts"> |
-| *The island — always there, eyes following you* | *Hover 2 seconds… hearts* 💕 |
+## ✨ See it in action
 
-<img src="docs/media/chat.png" width="640" alt="Chatting from the island">
+<img src="docs/media/approval.gif" width="360" alt="Approval glow">
 
-*Click the island — it springs open. Chat, activity feed, settings.*
+*When he needs permission, the island glows orange and asks you.*
+
+<img src="docs/media/panel.png" width="640" alt="Chat panel with approval card">
+
+*Click the island — it springs open. Chat with markdown, live activity, approval cards.*
 
 </div>
+
+---
 
 ## 💡 Why
 
@@ -49,20 +52,24 @@ and updates in one click.
 
 ## 🚀 Features
 
-- 🟣 **Island companion** — a soft little character at the top of your screen: eyes follow your cursor, blinks, breathes, waves hello, celebrates when he's done
-- ✨ **Alive** — springy animations, floating hearts on long hover, poke him (three pokes = dizzy!), falls asleep when idle, little chimes
-- 💬 **Chat in the island** — click to expand; streaming replies with markdown, click the model pill to switch models, slash commands (`/new` `/model` `/screenshot`)
-- 📋 **Live activity feed** — watch every step: what he reads, runs and clicks
-- ✅ **Approvals in the island** — the island glows orange; Allow / Always allow / Deny, with `Y` / `N` keyboard shortcuts
-- 🔄 **Self-updating** — when a new release drops, a card appears in the island; one click downloads and installs it
-- 👁️ **Vision** — screenshots so he can actually *see* buttons, windows and dialogs
-- 🖱️ **Full mouse control** — move, click, double-click, scroll, drag
-- ⌨️ **Full keyboard control** — type (English/Persian), keys, hotkeys like Win+R
-- 🔌 **MCP support** — connect any [Model Context Protocol](https://modelcontextprotocol.io) server and use its tools
-- 🧠 **Long-term memory** — remembers facts about you across sessions
-- 🎭 **Editable personality** — `soul.md`, editable from Settings
-- 🌐 **Bilingual** — English by default, one tap for فارسی
-- 🖥️ **Drag him out** — tear him off the island onto your desktop; double-click sends him home
+<table>
+<tr>
+<td>🟣 <b>Island companion</b><br><sub>Soft little character at the top of your screen — eyes follow your cursor, blinks, breathes, waves hello</sub></td>
+<td>✨ <b>Alive</b><br><sub>Springy animations, floating hearts on long hover, poke him (three pokes = dizzy!), falls asleep when idle, little chimes</sub></td>
+</tr>
+<tr>
+<td>💬 <b>Chat in the island</b><br><sub>Click to expand — streaming replies with markdown, model switcher pill, slash commands</sub></td>
+<td>✅ <b>Approvals</b><br><sub>Island glows orange — Allow / Always allow / Deny, with <code>Y</code>/<code>N</code> shortcuts</sub></td>
+</tr>
+<tr>
+<td>🔄 <b>Self-updating</b><br><sub>New release? A card pops up — one click downloads & installs</sub></td>
+<td>👁️ <b>Vision + control</b><br><sub>Sees your screen, moves mouse, types (EN/FA), hotkeys</sub></td>
+</tr>
+<tr>
+<td>🔌 <b>MCP support</b><br><sub>Connect any Model Context Protocol server</sub></td>
+<td>🧠 <b>Memory</b><br><sub>Remembers facts about you across sessions</sub></td>
+</tr>
+</table>
 
 ## 📥 Install
 
@@ -88,16 +95,17 @@ Prefer portable? Grab **AgentKH-Windows.zip**, extract anywhere, run `AgentKH.ex
 |---|---|
 | Click the island | It springs open: chat, activity, settings |
 | Type and hit Enter | He thinks, works, and streams the answer |
-| He needs permission | The island glows orange, a card appears: Allow / Always / Deny (or press `Y` / `N`) |
-| Hover him for 2 seconds | Hearts 💕 |
-| Click him | He gets annoyed. Three times → dizzy 😵 |
-| Drag him out of the island | He moves onto your desktop. Double-click sends him home |
-| Leave him alone for 45s | He falls asleep 💤 (click to wake) |
-| A new version is released | A card pops up in the island — one click updates |
+| He needs permission | The island glows orange 🟠 — Allow / Always / Deny (or `Y` / `N`) |
+| Hover him 2 sec | Hearts 💕 |
+| Click him | He gets annoyed 😠 — three times → dizzy 😵 |
+| Leave him 45 sec | He falls asleep 💤 |
+| New version out | Card pops up — one click updates 🔄 |
 
 Add your Gemini API key in ⚙️ Settings
 (free at [aistudio.google.com](https://aistudio.google.com) — no credit card),
 or point him at any OpenAI-compatible API.
+
+Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
@@ -105,23 +113,20 @@ or point him at any OpenAI-compatible API.
 - **v3.2** — fixed the approval glow and badge, smoother island outline
 - **v3.1** — self-updater, custom icon, markdown chat, slash commands
 - **v3.0** — animations everywhere: springy island, hearts, poke, sleep, sounds
-- **v2.0** — native island app (no browser), desktop companion, approvals
 
 ## 🔨 Build it yourself
 
-On Windows:
 ```bat
 build.bat
 ```
-Runs PyInstaller (`AgentKH.spec`) → `dist\AgentKH\AgentKH.exe`.
-Setup wizard: `makensis installer.nsi`.
-GitHub Actions builds the installer + portable zip on every `v*` tag.
+PyInstaller (`AgentKH.spec`) → `dist\AgentKH\AgentKH.exe`, then `makensis installer.nsi`.
+GitHub Actions builds everything on every `v*` tag.
 
-From source (Python 3.9+, tkinter):
+From source (Python 3.9+):
 ```bash
 git clone https://github.com/Nikankh566/AgentKH.git
 cd AgentKH
-pip install pillow          # optional, enables vision
+pip install pywebview pillow
 python agentkh.py
 ```
 
@@ -141,7 +146,7 @@ python agentkh.py
 | `engine.py` | Agent core: LLM client, tools, agent loop |
 | `sfx.py` | Little synthesized sounds |
 | `updater.py` | Self-update: check, download, install |
-| `desktop.py` | Mouse/keyboard/screenshot (pyautogui or Win32) |
+| `desktop.py` | Mouse/keyboard/screenshot |
 | `mcp.py` | MCP stdio client |
 | `soul.md` | Editable personality |
 
@@ -155,16 +160,15 @@ MIT — free for personal and commercial use. See [LICENSE](LICENSE).
 <summary>🇮🇷 فارسی</summary>
 
 <div align="center">
-<img src="docs/media/pulse.gif" width="300" alt="Agent KH">
+<img src="docs/media/hero.gif" width="300" alt="Agent KH">
 </div>
 
 **Agent KH** یه دوست کوچیک هوش مصنوعیه که بالای صفحه‌ت زندگی می‌کنه — یه جزیره‌ی
-مشکی با یه کاراکتر بامزه که چشماش دنبالت می‌کنه. روش کلیک کن تا چت باز بشه؛
-بدون مرورگر، همه‌چیز توی همون جزیره اتفاق می‌افته. صفحه رو می‌بینه، موس و
-کیبورد رو کنترل می‌کنه، دستور اجرا می‌کنه، و قبل از هر کار حساسی اجازه می‌گیره.
+مشکی با یه کاراکتر بامزه که چشماش دنبالت می‌کنه، پلک می‌زنه و نفس می‌کشه.
+روش کلیک کن تا چت باز بشه؛ بدون مرورگر، همه‌چیز توی همون جزیره اتفاق می‌افته.
 
-**امکانات:** انیمیشن‌های زنده، قلب با هاور، poke کردن، خوابیدن، صدا، تأیید با
-پالس نارنجی، آپدیت خودکار با یه کلیک، حافظه بلندمدت، پشتیبانی از MCP و فارسی.
+**امکانات:** انیمیشن‌های نرم، قلب با هاور، poke کردن، خوابیدن، صدا، تأیید با
+درخشش نارنجی، آپدیت خودکار با یه کلیک، حافظه بلندمدت، MCP و فارسی.
 
 از صفحه‌ی [Releases](https://github.com/Nikankh566/AgentKH/releases) فایل
 **AgentKH-Setup.exe** رو دانلود و نصب کن — رایگان، برای همیشه.
