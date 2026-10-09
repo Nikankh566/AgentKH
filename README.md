@@ -14,6 +14,7 @@ No browser tabs, no terminal windows, no fuss.
 [![Version](https://img.shields.io/github/v/release/Nikankh566/AgentKH?label=version&color=7c6cf5)](https://github.com/Nikankh566/AgentKH/releases)
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)
+![Web UI](https://img.shields.io/badge/UI-HTML%2FCSS-ff6b8a?logo=html5&logoColor=white)
 ![Gemini](https://img.shields.io/badge/Powered_by-Gemini-1a73e8?logo=google&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-supported-ff9f2e)
 ![Code: MIT](https://img.shields.io/badge/code-MIT-green)
@@ -100,6 +101,7 @@ or point him at any OpenAI-compatible API.
 
 ## 🆕 What's new
 
+- **v4.0** — brand-new web UI (HTML/CSS): buttery animations, cuter character, real glow effects
 - **v3.2** — fixed the approval glow and badge, smoother island outline
 - **v3.1** — self-updater, custom icon, markdown chat, slash commands
 - **v3.0** — animations everywhere: springy island, hearts, poke, sleep, sounds
@@ -134,9 +136,9 @@ python agentkh.py
 
 | File | What it is |
 |---|---|
-| `agentkh.py` | Island app: character, chat/activity/settings, approvals, updater UI |
+| `agentkh.py` | App shell: pywebview window + Python↔JS bridge |
+| `web/ui.html` | The whole UI: island, character (SVG), chat/activity/settings, cards |
 | `engine.py` | Agent core: LLM client, tools, agent loop |
-| `mochi.py` | The character (canvas animation) |
 | `sfx.py` | Little synthesized sounds |
 | `updater.py` | Self-update: check, download, install |
 | `desktop.py` | Mouse/keyboard/screenshot (pyautogui or Win32) |

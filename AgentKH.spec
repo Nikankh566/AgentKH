@@ -9,7 +9,7 @@ a = Analysis(
     ['agentkh.py'],
     pathex=[],
     binaries=[],
-    datas=[('soul.md', '.'), ('docs/media/icon.png', 'docs/media')],
+    datas=[('soul.md', '.'), ('docs/media/icon.png', 'docs/media'), ('web', 'web')],
     hiddenimports=[],
     hookspath=[],
     runtime_hooks=[],

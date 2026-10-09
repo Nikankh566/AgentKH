@@ -20,7 +20,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install PyInstaller
-        run: pip install pyinstaller
+        run: pip install pyinstaller pywebview pillow
 
       - name: Build executables
         run: pyinstaller AgentKH.spec
