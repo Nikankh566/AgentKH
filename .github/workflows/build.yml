@@ -1,5 +1,8 @@
 name: Build Windows release
 
+permissions:
+  contents: write   # needed to create GitHub Releases
+
 on:
   push:
     tags:
