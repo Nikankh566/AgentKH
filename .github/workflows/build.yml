@@ -29,8 +29,9 @@ jobs:
 
       - name: Build setup wizard (NSIS)
         run: |
+          choco install nsis -y
           & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
-        continue-on-error: true
+          if (!(Test-Path "AgentKH-Setup.exe")) { throw "Setup exe was not created" }
 
       - name: Zip portable package
         run: Compress-Archive -Path dist/AgentKH -DestinationPath AgentKH-Windows.zip
