@@ -17,6 +17,7 @@ from tkinter import ttk
 import engine
 from engine import Engine
 from mochi import MochiWidget
+import sfx
 
 # ---------------------------------------------------------------- palette
 BG = "#0b0b0d"        # island black
@@ -54,6 +55,9 @@ class IslandApp:
         self.panel_open = False
         self.approval = None   # {"event", "decision", "name", "args"}
         self.worker = None
+        self._typing_idx = None
+        self._typing_after = None
+        self._pulsing = False
 
         self.root = tk.Tk()
         self.root.title("Agent KH")
@@ -68,6 +72,7 @@ class IslandApp:
 
         self.root.after(120, self._poll)
         self.root.after(500, self._greet)
+        self.root.after(300, self._slide_in)
 
     # ------------------------------------------------------------ windows
     def _setup_window(self, win, w, h, top=True):
@@ -87,6 +92,64 @@ class IslandApp:
         sw = self.root.winfo_screenwidth()
         return "+%d+%d" % ((sw - PANEL_W) // 2, ISLAND_H + 14)
 
+    # ------------------------------------------------------------ animation
+    @staticmethod
+    def _ease_out_cubic(p):
+        return 1 - (1 - p) ** 3
+
+    @staticmethod
+    def _ease_out_back(p):
+        c = 1.70158
+        return 1 + (c + 1) * (p - 1) ** 3 + c * (p - 1) ** 2
+
+    def _tween(self, ms, fn, done=None, ease=None):
+        import time as _t
+        t0 = _t.time()
+
+        def step():
+            p = min(1.0, (_t.time() - t0) * 1000 / ms)
+            fn((ease or (lambda x: x))(p))
+            if p < 1.0:
+                self.root.after(16, step)
+            elif done:
+                done()
+        step()
+
+    def _slide_in(self):
+        self.root.geometry("+%d+%d" % (self.island_x, -ISLAND_H))
+
+        def frame(e):
+            y = int(-ISLAND_H + (ISLAND_H + 6) * e)
+            self.root.geometry("+%d+%d" % (self.island_x, y))
+        self._tween(600, frame, ease=self._ease_out_back,
+                     done=lambda: (self.mini.wave(),
+                                   None if self.muted else sfx.greeting()))
+
+    def _pulse(self, on):
+        self._pulsing = on
+        if on:
+            self._pulse_step()
+        else:
+            try:
+                self.canvas.itemconfigure(self._pill_id, outline="#2a2a32",
+                                          width=1)
+            except Exception:
+                pass
+
+    def _pulse_step(self):
+        if not getattr(self, "_pulsing", False):
+            return
+        import math as _m
+        import time as _t
+        b = 0.5 + 0.5 * _m.sin(_t.time() * 7)
+        try:
+            self.canvas.itemconfigure(
+                self._pill_id,
+                outline="#ff9f2e" if b > 0.4 else "#7a4a12", width=3)
+        except Exception:
+            pass
+        self.root.after(130, self._pulse_step)
+
     # ------------------------------------------------------------ island
     def _build_island(self):
         self.canvas = tk.Canvas(self.root, width=ISLAND_W, height=ISLAND_H,
@@ -94,8 +157,8 @@ class IslandApp:
                                 bg="magenta" if self._transparent else BG)
         self.canvas.pack()
         bg = "magenta" if self._transparent else BG
-        rounded(self.canvas, 2, 2, ISLAND_W - 2, ISLAND_H - 2, 30, fill=BG,
-                outline="#2a2a32")
+        self._pill_id = rounded(self.canvas, 2, 2, ISLAND_W - 2,
+                                ISLAND_H - 2, 30, fill=BG, outline="#2a2a32")
         # mini mochi on the left
         self.mini = MochiWidget(self.canvas, size=52)
         self.mini.configure(bg=BG)
@@ -112,9 +175,92 @@ class IslandApp:
         self._drag_from = None
         self.mini.bind("<ButtonPress-1>", self._mochi_press)
         self.mini.bind("<B1-Motion>", self._mochi_drag)
+        self.mini.bind("<ButtonRelease-1>", self._mochi_release)
+        # long hover -> hearts
+        self._hover_after = None
+        self.canvas.bind("<Enter>", self._island_enter)
+        self.canvas.bind("<Leave>", self._island_leave)
+        # idle -> sleep
+        self._idle_after = None
+        self._ihearts = []
+        self._ihearts_after = None
+        self._arm_idle()
+
+    def _island_enter(self, e):
+        self._island_hover(True)
+        self._wake()
+        self._hover_after = self.root.after(2000, self._island_love)
+
+    def _island_leave(self, e):
+        self._island_hover(False)
+        if self._hover_after:
+            self.root.after_cancel(self._hover_after)
+            self._hover_after = None
+
+    def _island_love(self):
+        self._hover_after = None
+        import random
+        for _ in range(3):
+            self._ihearts.append({
+                "x": 34 + random.uniform(-14, 14),
+                "y": 16,
+                "life": 55,
+                "s": random.uniform(6, 9),
+            })
+        if not self._ihearts_after:
+            self._ihearts_step()
+        if not self.muted:
+            sfx.pop()
+
+    def _ihearts_step(self):
+        self._ihearts_after = None
+        self.canvas.delete("hearts")
+        alive = []
+        for h in self._ihearts:
+            h["y"] -= 1.4
+            h["life"] -= 1
+            if h["life"] > 0:
+                alive.append(h)
+                s, x, y = h["s"], h["x"], h["y"]
+                kw = {"fill": "#ff6b8a", "outline": "", "tags": "hearts"}
+                self.canvas.create_oval(x - s * 0.5, y - s * 0.55,
+                                        x + s * 0.06, y + s * 0.01, **kw)
+                self.canvas.create_oval(x - s * 0.06, y - s * 0.55,
+                                        x + s * 0.5, y + s * 0.01, **kw)
+                self.canvas.create_polygon(
+                    x - s * 0.44, y - s * 0.1, x + s * 0.44, y - s * 0.1,
+                    x, y + s * 0.7, smooth=True, **kw)
+        self._ihearts = alive
+        if alive:
+            self._ihearts_after = self.root.after(50, self._ihearts_step)
+
+    def _arm_idle(self):
+        if self._idle_after:
+            self.root.after_cancel(self._idle_after)
+        self._idle_after = self.root.after(45000, self._go_sleep)
+
+    def _go_sleep(self):
+        if not self.panel_open and not self.eng.busy:
+            self.mini.set_mood("sleeping")
+            self.set_island("💤")
+
+    def _wake(self):
+        self._arm_idle()
+        if self.mini.mood == "sleeping":
+            self.mini.set_mood("idle")
+            self.set_island("Agent KH")
 
     def _mochi_press(self, e):
         self._drag_from = (e.x_root, e.y_root)
+        self._wake()
+
+    def _mochi_release(self, e):
+        # simple click (not a drag) -> poke Mochi
+        if self._drag_from is not None:
+            self._drag_from = None
+            self.mini.poke()
+            if not self.muted:
+                sfx.poke()
 
     def _mochi_drag(self, e):
         if not self._drag_from:
@@ -216,14 +362,59 @@ class IslandApp:
             self.open_panel()
 
     def open_panel(self):
+        if self.panel_open:
+            return
+        self._wake()
+        self.panel_open = True
         self.panel.deiconify()
         self.panel.lift()
-        self.panel_open = True
-        self.set_island(mood="idle")
+        sw = self.root.winfo_screenwidth()
+        x = (sw - PANEL_W) // 2
+        y0 = ISLAND_H + 10
+        try:
+            self.panel.attributes("-alpha", 0.0)
+        except Exception:
+            pass
+
+        def frame(e):
+            h = int(80 + (PANEL_H - 80) * e)
+            self.panel.geometry("%dx%d+%d+%d" % (PANEL_W, h, x, y0))
+            try:
+                self.panel.attributes("-alpha", min(1.0, e * 1.4))
+            except Exception:
+                pass
+        self._tween(300, frame, ease=self._ease_out_cubic,
+                     done=lambda: (self.panel.geometry(self._panel_pos()),
+                                   self._alpha_reset()))
+        if not self.muted:
+            sfx.pop()
+
+    def _alpha_reset(self):
+        try:
+            self.panel.attributes("-alpha", 1.0)
+        except Exception:
+            pass
 
     def close_panel(self):
-        self.panel.withdraw()
-        self.panel_open = False
+        if not self.panel_open:
+            return
+        sw = self.root.winfo_screenwidth()
+        x = (sw - PANEL_W) // 2
+        y0 = ISLAND_H + 10
+
+        def frame(e):
+            h = int(PANEL_H - (PANEL_H - 80) * e)
+            self.panel.geometry("%dx%d+%d+%d" % (PANEL_W, h, x, y0))
+            try:
+                self.panel.attributes("-alpha", max(0.0, 1.0 - e * 1.4))
+            except Exception:
+                pass
+
+        def done():
+            self.panel.withdraw()
+            self.panel_open = False
+            self._alpha_reset()
+        self._tween(220, frame, ease=self._ease_out_cubic, done=done)
 
     def show_view(self, name):
         self.view = name
@@ -237,14 +428,36 @@ class IslandApp:
         self.muted = not self.muted
         self.mute_btn.configure(text="🔇" if self.muted else "🔊")
 
-    def _beep(self, kind="info"):
-        if self.muted:
+    # ------------------------------------------------------------ typing
+    def _typing_on(self):
+        self._typing_after = None
+        self._typing_dots = 0
+        self.chat_text.configure(state="normal")
+        self._typing_idx = self.chat_text.index("end")
+        self.chat_text.configure(state="disabled")
+        self._typing_step()
+
+    def _typing_step(self):
+        if self._typing_idx is None:
             return
-        try:
-            import winsound
-            winsound.Beep(880 if kind == "approval" else 660, 180)
-        except Exception:
-            pass
+        dots = "●" * (self._typing_dots + 1) + "○" * (2 - self._typing_dots)
+        self.chat_text.configure(state="normal")
+        self.chat_text.delete(self._typing_idx, "end")
+        self.chat_text.insert("end", dots + "\n", "dim")
+        self.chat_text.configure(state="disabled")
+        self.chat_text.see("end")
+        self._typing_dots = (self._typing_dots + 1) % 3
+        self._typing_after = self.root.after(400, self._typing_step)
+
+    def _typing_off(self):
+        if self._typing_after:
+            self.root.after_cancel(self._typing_after)
+            self._typing_after = None
+        if self._typing_idx is not None:
+            self.chat_text.configure(state="normal")
+            self.chat_text.delete(self._typing_idx, "end")
+            self.chat_text.configure(state="disabled")
+        self._typing_idx = None
 
     # ------------------------------------------------------------ views
     def _build_chat_view(self):
@@ -346,6 +559,7 @@ class IslandApp:
             self.open_panel()
         self.show_view("chat")
         self._stream_target = None
+        self._typing_on()
         self.mini.set_mood("thinking")
         self.set_island("thinking…", "thinking")
         self.worker = threading.Thread(target=self.eng.chat,
@@ -500,7 +714,9 @@ class IslandApp:
         self.root.bind("<n>", lambda e: decide("deny"))
         if not self.panel_open:
             self.open_panel()
-        self._beep("approval")
+        if not self.muted:
+            sfx.approval()
+        self._pulse(True)
         self.mini.set_mood("approval")
         self.set_island("approval needed 👀", "approval")
 
@@ -508,6 +724,7 @@ class IslandApp:
         self.pcanvas.itemconfigure(self._appr_win, state="hidden")
         self.root.unbind("<y>")
         self.root.unbind("<n>")
+        self._pulse(False)
 
     # ------------------------------------------------------------ desktop mochi
     def _build_desktop_mochi(self):
@@ -587,6 +804,7 @@ class IslandApp:
         kind = item[0]
         if kind == "token":
             if self._stream_target is None:
+                self._typing_off()
                 self.chat_text.configure(state="normal")
                 self._stream_target = self.chat_text.index("end")
                 self.chat_text.configure(state="disabled")
@@ -608,12 +826,18 @@ class IslandApp:
             self.show_approval(name, args)
             self._wait_approval(ev)
         elif kind == "error":
+            self._typing_off()
             self._notice("⚠️ " + item[1], "err")
             self.mini.set_mood("error")
             self.set_island("error", "error")
+            if not self.muted:
+                sfx.error()
         elif kind == "end":
+            self._typing_off()
             self.mini.set_mood("happy")
             self.set_island("Agent KH", "happy")
+            if not self.muted:
+                sfx.done()
             self.root.after(1500,
                             lambda: self.mini.set_mood("idle")
                             if not self.eng.busy else None)

@@ -13,7 +13,9 @@ English by default, فارسی هم پشتیبانی می‌شود 🇮🇷
 
 ## ✨ Features
 
-- 🟣 **Island companion (Mochi)** — lives at the top of your screen; eyes follow your cursor, blinks, breathes, celebrates when done, turns orange when it needs approval
+- 🟣 **Island companion (Mochi)** — lives at the top of your screen; eyes follow your cursor, blinks, breathes, waves hello on launch, celebrates when done, turns orange when it needs approval
+- ✨ **Alive with animation** — springy slide-in, animated expand/collapse, pulsing approval glow, floating hearts on long hover, poke him (3 pokes = dizzy!), falls asleep when idle
+- 🔊 **Sound effects** — little chimes for greeting, approvals and finished tasks (mutable)
 - 💬 **Chat in the island** — click to expand; streaming replies, click the model pill to switch models
 - 📋 **Live activity feed** — watch every step: what it reads, runs and clicks
 - ✅ **Approvals in the island** — Allow / Always allow / Deny with keyboard shortcuts (Y/N), Coucou-style
