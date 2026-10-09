@@ -208,11 +208,11 @@ class MochiWidget(tk.Canvas):
                                  fill="white", outline="")
 
         if mood == "approval":
-            bx, by = cx + bw * 0.38 + ox, cy - bh * 0.42 + oy
-            pulse = 1 + math.sin(self._t * 0.3) * 0.08
-            r = 13 * pulse
+            bx, by = cx + bw * 0.34 + ox, cy - bh * 0.36 + oy
+            pulse = 1 + math.sin(self._t * 0.3) * 0.06
+            r = 7 * pulse
             self.create_oval(bx - r, by - r, bx + r, by + r,
-                             fill=BADGE, outline="white", width=2)
-            self.create_text(bx, by, text="!", fill="white",
-                             font=("Arial", 14, "bold"))
+                             fill=BADGE, outline="white", width=1.5)
+            self.create_text(bx, by - 1, text="!", fill="white",
+                             font=("Arial", 9, "bold"))
 

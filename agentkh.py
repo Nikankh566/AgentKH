@@ -37,14 +37,17 @@ PANEL_W, PANEL_H = 660, 540
 
 
 def rounded(canvas, x1, y1, x2, y2, r, **kw):
+    # clean rounded rect: 12 points per corner, no duplicate joints,
+    # no smooth flag (avoids outline gaps/kinks in tkinter)
+    import math
+    kw.pop("smooth", None)
     pts = []
-    for (cx, cy, a0) in [(x1 + r, y1 + r, 180), (x2 - r, y1 + r, 270),
-                         (x2 - r, y2 - r, 0), (x1 + r, y2 - r, 90)]:
-        for i in range(13):
-            a = (a0 + i * 90 / 12) * 3.14159 / 180
-            import math
+    for cx, cy, a0 in [(x1 + r, y1 + r, 180), (x2 - r, y1 + r, 270),
+                       (x2 - r, y2 - r, 0), (x1 + r, y2 - r, 90)]:
+        for i in range(12):
+            a = (a0 + i * 7.5) * math.pi / 180
             pts += [cx + r * math.cos(a), cy + r * math.sin(a)]
-    return canvas.create_polygon(pts, smooth=True, **kw)
+    return canvas.create_polygon(pts, **kw)
 
 
 class IslandApp:
@@ -149,7 +152,7 @@ class IslandApp:
         try:
             self.canvas.itemconfigure(
                 self._pill_id,
-                outline="#ff9f2e" if b > 0.4 else "#7a4a12", width=3)
+                outline="#ff9f2e" if b > 0.4 else "#ffc46b", width=2)
         except Exception:
             pass
         self.root.after(130, self._pulse_step)
