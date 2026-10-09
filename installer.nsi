@@ -3,6 +3,7 @@
 ; Output: AgentKH-Setup.exe
 
 !include "MUI2.nsh"
+!include "LogicLib.nsh"
 
 Name "Agent KH"
 OutFile "AgentKH-Setup.exe"
@@ -34,6 +35,11 @@ Section "Install"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\AgentKH" "DisplayName" "Agent KH"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\AgentKH" "UninstallString" "$INSTDIR\Uninstall.exe"
+
+  ; after a silent update, relaunch the app
+  ${If} ${Silent}
+    Exec '"$INSTDIR\AgentKH.exe"'
+  ${EndIf}
 SectionEnd
 
 Section "Uninstall"

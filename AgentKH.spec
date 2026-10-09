@@ -9,7 +9,7 @@ a = Analysis(
     ['agentkh.py'],
     pathex=[],
     binaries=[],
-    datas=[('soul.md', '.')],
+    datas=[('soul.md', '.'), ('docs/media/icon.png', 'docs/media')],
     hiddenimports=[],
     hookspath=[],
     runtime_hooks=[],
@@ -28,7 +28,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,   # windowed: the island IS the UI
-    icon=None,
+    icon='docs/media/icon.ico',
 )
 coll = COLLECT(
     exe, a.binaries, a.zipfiles, a.datas,

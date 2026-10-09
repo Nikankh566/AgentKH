@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-sfx.py — tiny synthesized sound effects for Agent KH (Coucou-style).
+sfx.py — tiny synthesized sound effects for Agent KH .
 Windows: winsound beep melodies. Elsewhere: silent no-op.
 """
 import threading

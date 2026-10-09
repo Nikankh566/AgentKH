@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Agent KH v2 — Coucou-style island app.
+Agent KH — island desktop app.
 One native window living at the top of the screen: click the island to
 expand chat / activity / settings. No browser needed.
 
@@ -18,6 +18,7 @@ import engine
 from engine import Engine
 from mochi import MochiWidget
 import sfx
+import updater
 
 # ---------------------------------------------------------------- palette
 BG = "#0b0b0d"        # island black
@@ -58,6 +59,8 @@ class IslandApp:
         self._typing_idx = None
         self._typing_after = None
         self._pulsing = False
+        self._reply_buf = ""
+        self._stream_target = None
 
         self.root = tk.Tk()
         self.root.title("Agent KH")
@@ -73,6 +76,7 @@ class IslandApp:
         self.root.after(120, self._poll)
         self.root.after(500, self._greet)
         self.root.after(300, self._slide_in)
+        self.root.after(15000, lambda: self.check_updates(silent=True))
 
     # ------------------------------------------------------------ windows
     def _setup_window(self, win, w, h, top=True):
@@ -171,7 +175,7 @@ class IslandApp:
         self.canvas.bind("<Button-1>", lambda e: self.toggle_panel())
         self.canvas.bind("<Enter>", lambda e: self._island_hover(True))
         self.canvas.bind("<Leave>", lambda e: self._island_hover(False))
-        # drag the mochi out of the island -> desktop companion (Coucou-style)
+        # drag the mochi out of the island -> desktop companion
         self._drag_from = None
         self.mini.bind("<ButtonPress-1>", self._mochi_press)
         self.mini.bind("<B1-Motion>", self._mochi_drag)
@@ -335,6 +339,14 @@ class IslandApp:
             PANEL_W // 2, 120, window=self.appr_frame, width=PANEL_W - 60,
             state="hidden")
 
+        # update card (hidden by default)
+        self.upd_frame = tk.Frame(self.pcanvas, bg="#152b1e", padx=14,
+                                  pady=10)
+        self._upd_win = self.pcanvas.create_window(
+            PANEL_W // 2, 120, window=self.upd_frame, width=PANEL_W - 60,
+            state="hidden")
+        self._pending_update = None
+
         # content area
         self.content = tk.Frame(self.pcanvas, bg=PANEL)
         self.pcanvas.create_window(PANEL_W // 2, 330, window=self.content,
@@ -488,6 +500,9 @@ class IslandApp:
                                   spacing1=8, spacing3=8)
         self.chat_text.tag_config("err", foreground=RED, justify="center",
                                   spacing1=8, spacing3=8)
+        self.chat_text.tag_config("bold", font=("Segoe UI", 10, "bold"))
+        self.chat_text.tag_config("code", font=("Consolas", 10),
+                                  background="#23232b", foreground="#ffd479")
         # input row
         row = tk.Frame(f, bg=PANEL)
         row.pack(fill="x")
@@ -533,8 +548,31 @@ class IslandApp:
         self._notice("model: " + nxt)
 
     def _bubble(self, who, text):
+        if who == "bot":
+            self._render_rich(text.strip())
+        else:
+            self.chat_text.configure(state="normal")
+            self.chat_text.insert("end", text.strip() + "\n", who)
+            self.chat_text.configure(state="disabled")
+            self.chat_text.see("end")
+
+    def _render_rich(self, text, base="bot"):
+        import re
         self.chat_text.configure(state="normal")
-        self.chat_text.insert("end", text.strip() + "\n", who)
+        pattern = re.compile(r"(\*\*.+?\*\*|`[^`]+?`)")
+        pos = 0
+        for m in pattern.finditer(text):
+            if m.start() > pos:
+                self.chat_text.insert("end", text[pos:m.start()], base)
+            tok = m.group(0)
+            if tok.startswith("**"):
+                self.chat_text.insert("end", tok[2:-2], (base, "bold"))
+            else:
+                self.chat_text.insert("end", tok[1:-1], (base, "code"))
+            pos = m.end()
+        if pos < len(text):
+            self.chat_text.insert("end", text[pos:], base)
+        self.chat_text.insert("end", "\n")
         self.chat_text.configure(state="disabled")
         self.chat_text.see("end")
 
@@ -554,17 +592,36 @@ class IslandApp:
         if not text or self.eng.busy:
             return
         self.entry.delete(0, "end")
+        if text.startswith("/"):
+            self._slash(text)
+            return
         self._bubble("user", text)
         if not self.panel_open:
             self.open_panel()
         self.show_view("chat")
         self._stream_target = None
+        self._reply_buf = ""
         self._typing_on()
         self.mini.set_mood("thinking")
         self.set_island("thinking…", "thinking")
         self.worker = threading.Thread(target=self.eng.chat,
                                        args=(text, self), daemon=True)
         self.worker.start()
+
+    def _slash(self, text):
+        cmd = text.split()[0].lower()
+        if cmd == "/new":
+            self.eng.clear_history()
+            self._chat_clear()
+            self._notice(self.eng.T("new_chat"))
+        elif cmd == "/model":
+            self._switch_model()
+        elif cmd == "/screenshot":
+            self.entry.insert(0, "Take a screenshot and tell me what you see")
+            self.send()
+        else:
+            self._notice("unknown command. try /new, /model, /screenshot",
+                         "err")
 
     # ------------------------------------------------------------ activity
     def _build_activity_view(self):
@@ -652,6 +709,14 @@ class IslandApp:
                   activebackground=GREEN,
                   command=self._save_settings).grid(row=row, column=1,
                                                     sticky="w", pady=10)
+        row += 1
+        tk.Label(f, text="v" + updater.VERSION, bg=PANEL, fg=DIM,
+                 font=("Segoe UI", 9)).grid(row=row, column=0, sticky="w")
+        tk.Button(f, text="🔄 Check for updates", bg=CARD2, fg=TEXT, bd=0,
+                  highlightthickness=0, relief="flat", padx=14, pady=6,
+                  cursor="hand2", activebackground="#3a3a44",
+                  command=lambda: self.check_updates(silent=False)).grid(
+                      row=row, column=1, sticky="w", pady=4)
 
     def _save_settings(self):
         cfg = self.eng.config
@@ -725,6 +790,101 @@ class IslandApp:
         self.root.unbind("<y>")
         self.root.unbind("<n>")
         self._pulse(False)
+        # show a postponed update card, if any
+        if self._pending_update:
+            tag, assets = self._pending_update
+            self._pending_update = None
+            self.show_update_card(tag, assets)
+
+    # ------------------------------------------------------------ updater
+    def check_updates(self, silent=True):
+        updater.check_in_background(
+            lambda tag, assets: self.q.put(("update_avail", tag, assets)))
+
+    def _on_update_avail(self, tag, assets):
+        try:
+            vis = self.pcanvas.itemcget(self._appr_win, "state")
+        except Exception:
+            vis = "hidden"
+        if vis == "normal":
+            self._pending_update = (tag, assets)
+            return
+        self.show_update_card(tag, assets)
+
+    def show_update_card(self, tag, assets):
+        for w in self.upd_frame.winfo_children():
+            w.destroy()
+        tk.Label(self.upd_frame, text="🎉 New version %s available!" % tag,
+                 bg="#152b1e", fg=GREEN,
+                 font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        tk.Label(self.upd_frame,
+                 text="Update right from here — the installer will do "
+                      "the rest.",
+                 bg="#152b1e", fg=DIM,
+                 font=("Segoe UI", 9)).pack(anchor="w", pady=(2, 6))
+        self._upd_prog = tk.Label(self.upd_frame, text="", bg="#152b1e",
+                                  fg=TEXT, font=("Segoe UI", 9))
+        self._upd_prog.pack(anchor="w")
+        btns = tk.Frame(self.upd_frame, bg="#152b1e")
+        btns.pack(fill="x", pady=(4, 0))
+
+        def later():
+            self.pcanvas.itemconfigure(self._upd_win, state="hidden")
+
+        def now():
+            for b in btns.winfo_children():
+                b.configure(state="disabled")
+            threading.Thread(target=self._do_update, args=(tag, assets),
+                             daemon=True).start()
+
+        tk.Button(btns, text="Later", bg=CARD2, fg=TEXT, bd=0,
+                  highlightthickness=0, relief="flat", padx=14, pady=7,
+                  cursor="hand2", activebackground="#3a3a44",
+                  command=later).pack(side="left", padx=4)
+        tk.Button(btns, text="⬇ Update now", bg=GREEN, fg="#06281a", bd=0,
+                  highlightthickness=0, relief="flat", padx=18, pady=7,
+                  font=("Segoe UI", 10, "bold"), cursor="hand2",
+                  activebackground="#5ce896",
+                  command=now).pack(side="left", padx=4)
+        self.pcanvas.itemconfigure(self._upd_win, state="normal")
+        if not self.panel_open:
+            self.open_panel()
+        self.mini.set_mood("happy")
+        if not self.muted:
+            sfx.pop()
+
+    def _do_update(self, tag, assets):
+        url = assets.get("AgentKH-Setup.exe")
+        if not url:
+            # fallback: first exe asset
+            for n, u in assets.items():
+                if n.lower().endswith(".exe"):
+                    url = u
+                    break
+        if not url:
+            self.q.put(("update_msg", "No installer found in this release."))
+            return
+        import tempfile, os
+        dest = os.path.join(tempfile.gettempdir(), "AgentKH-Setup-%s.exe"
+                            % tag.replace(".", "_"))
+
+        def prog(done, total):
+            pct = int(done * 100 / total) if total else 0
+            self.q.put(("update_msg",
+                        "Downloading… %d%%" % pct))
+        try:
+            updater.download(url, dest, progress=prog)
+        except Exception as e:
+            self.q.put(("update_msg", "Download failed: %s" % e))
+            return
+        self.q.put(("update_msg", "Installing… see you in a moment! 👋"))
+        updater.install_setup_exe(dest)
+
+    def _on_update_msg(self, text):
+        try:
+            self._upd_prog.configure(text=text)
+        except Exception:
+            pass
 
     # ------------------------------------------------------------ desktop mochi
     def _build_desktop_mochi(self):
@@ -808,6 +968,7 @@ class IslandApp:
                 self.chat_text.configure(state="normal")
                 self._stream_target = self.chat_text.index("end")
                 self.chat_text.configure(state="disabled")
+            self._reply_buf += item[1]
             self.chat_text.configure(state="normal")
             self.chat_text.insert("end", item[1], "bot")
             self.chat_text.configure(state="disabled")
@@ -825,6 +986,10 @@ class IslandApp:
             name, args, ev = item[1], item[2], item[3]
             self.show_approval(name, args)
             self._wait_approval(ev)
+        elif kind == "update_avail":
+            self._on_update_avail(item[1], item[2])
+        elif kind == "update_msg":
+            self._on_update_msg(item[1])
         elif kind == "error":
             self._typing_off()
             self._notice("⚠️ " + item[1], "err")
@@ -834,6 +999,16 @@ class IslandApp:
                 sfx.error()
         elif kind == "end":
             self._typing_off()
+            # re-render the streamed reply with rich formatting
+            if getattr(self, "_reply_buf", "") and self._stream_target:
+                try:
+                    self.chat_text.configure(state="normal")
+                    self.chat_text.delete(self._stream_target, "end")
+                    self.chat_text.configure(state="disabled")
+                    self._render_rich(self._reply_buf.strip())
+                except Exception:
+                    pass
+                self._reply_buf = ""
             self.mini.set_mood("happy")
             self.set_island("Agent KH", "happy")
             if not self.muted:
