@@ -1,0 +1,56 @@
+name: Build Windows release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build executables
+        run: pyinstaller AgentKH.spec
+
+      - name: Copy installer files into package
+        run: |
+          Copy-Item install.ps1 dist/AgentKH/
+          Copy-Item installer.nsi dist/AgentKH/
+
+      - name: Build setup wizard (NSIS)
+        run: |
+          & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
+        continue-on-error: true
+
+      - name: Zip portable package
+        run: Compress-Archive -Path dist/AgentKH -DestinationPath AgentKH-Windows.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgentKH-Windows
+          path: |
+            AgentKH-Windows.zip
+            AgentKH-Setup.exe
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            AgentKH-Windows.zip
+            AgentKH-Setup.exe
+          body: |
+            ## Agent KH — your personal AI desktop agent ✨
+            - `AgentKH-Setup.exe` — installer (recommended): installs, adds Start Menu shortcut, auto-starts with Windows
+            - `AgentKH-Windows.zip` — portable: extract and run `AgentKH.exe`

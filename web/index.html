@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent KH ✨ Your personal AI agent</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div id="mascot" class="idle">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <ellipse class="shadow" cx="60" cy="108" rx="28" ry="7"/>
+        <path class="body" d="M60 8 C92 8 108 38 108 66 C108 94 86 106 60 106 C34 106 12 94 12 66 C12 38 28 8 60 8 Z"/>
+        <circle class="blush left" cx="30" cy="72" r="7"/>
+        <circle class="blush right" cx="90" cy="72" r="7"/>
+        <g class="eye left"><circle class="white" cx="42" cy="58" r="11"/><circle class="pupil" cx="42" cy="58" r="5"/><circle class="spark" cx="44" cy="56" r="1.8"/></g>
+        <g class="eye right"><circle class="white" cx="78" cy="58" r="11"/><circle class="pupil" cx="78" cy="58" r="5"/><circle class="spark" cx="80" cy="56" r="1.8"/></g>
+        <path class="mouth smile" d="M48 80 Q60 90 72 80"/>
+        <ellipse class="mouth open" cx="60" cy="84" rx="7" ry="9"/>
+        <path class="mouth flat" d="M50 83 L70 83"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Agent KH ✨</h1>
+      <p id="status">Ready!</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="btn-lang" title="فارسی / English">🌐</button>
+    <button id="btn-memory" title="Memory">🧠</button>
+    <button id="btn-settings" title="Settings">⚙️</button>
+    <button id="btn-clear" title="New chat">🧹</button>
+  </div>
+</header>
+
+<main id="chat"></main>
+
+<div id="composer">
+  <input id="input" type="text" placeholder="Ask Agent KH to do something..." autocomplete="off">
+  <button id="send">➤</button>
+</div>
+
+<!-- settings modal -->
+<div id="settings-modal" class="modal hidden">
+  <div class="card">
+    <h2 data-i18n="settings">⚙️ Settings</h2>
+    <label><span data-i18n="provider">Provider</span>
+      <select id="set-provider">
+        <option value="gemini">Gemini API</option>
+        <option value="custom" data-i18n="customApi">Custom API (OpenAI-compatible)</option>
+      </select>
+    </label>
+    <div id="gemini-fields">
+      <label><span data-i18n="geminiKey">Gemini key</span>
+        <input id="set-gemini-key" type="password" placeholder="API key" dir="ltr">
+      </label>
+      <label><span data-i18n="model">Model</span>
+        <input id="set-gemini-model" list="gemini-models" dir="ltr">
+        <datalist id="gemini-models">
+          <option value="gemini-3.5-flash"></option>
+          <option value="gemini-3.5-flash-lite"></option>
+          <option value="gemini-3.7-flash"></option>
+          <option value="gemini-2.5-flash"></option>
+        </datalist>
+      </label>
+    </div>
+    <div id="custom-fields" class="hidden">
+      <label><span data-i18n="baseUrl">API base URL</span>
+        <input id="set-custom-url" type="text" dir="ltr" placeholder="https://.../v1">
+      </label>
+      <label><span data-i18n="apiKey">Key</span>
+        <input id="set-custom-key" type="password" dir="ltr">
+      </label>
+      <label><span data-i18n="model">Model</span>
+        <input id="set-custom-model" type="text" dir="ltr">
+      </label>
+    </div>
+    <label class="row"><input id="set-auto-approve" type="checkbox"> <span data-i18n="autoApprove">Auto-approve commands (careful!)</span></label>
+    <label class="row"><input id="set-home-only" type="checkbox"> <span data-i18n="homeOnly">Restrict files to user folder</span></label>
+    <label><span data-i18n="language">Language</span>
+      <select id="set-lang">
+        <option value="en">English</option>
+        <option value="fa">فارسی</option>
+      </select>
+    </label>
+    <div class="btns">
+      <button id="set-save" class="primary" data-i18n="save">Save</button>
+      <button id="set-close" data-i18n="close">Close</button>
+    </div>
+    <h3 data-i18n="personality">🎭 Agent KH personality (soul.md)</h3>
+    <textarea id="soul-text" rows="8" dir="auto"></textarea>
+    <div class="btns"><button id="soul-save" class="primary" data-i18n="savePersonality">Save personality</button></div>
+  </div>
+</div>
+
+<!-- memory panel -->
+<div id="memory-modal" class="modal hidden">
+  <div class="card">
+    <h2 data-i18n="memory">🧠 Long-term memory</h2>
+    <p class="hint" data-i18n="memoryHint">Things Agent KH learned about you. Saved via the remember tool.</p>
+    <ul id="memory-list"></ul>
+    <div class="btns"><button id="memory-close" data-i18n="close">Close</button></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
