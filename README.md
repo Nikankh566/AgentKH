@@ -1,12 +1,15 @@
 <div align="center">
 
-<img src="docs/media/icon.png" width="96" alt="Agent KH icon">
+<img src="docs/media/icon.png" width="110" alt="Agent KH icon">
 
 # Agent KH
 
-**A tiny friend that lives at the top of your screen — and actually does things for you.**
+### A tiny friend that lives at the top of your screen — and actually does things for you.
 
-Chat with him, watch him work, approve his actions — all from the island. No browser, no terminal, no fuss.
+<img src="docs/media/pulse.gif" width="330" alt="Agent KH island pulsing for approval">
+
+Chat with him, watch him work, approve his actions — all from the island.
+No browser tabs, no terminal windows, no fuss.
 
 [![Version](https://img.shields.io/github/v/release/Nikankh566/AgentKH?label=version&color=7c6cf5)](https://github.com/Nikankh566/AgentKH/releases)
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%2F11-0078D4?logo=windows&logoColor=white)
@@ -16,28 +19,40 @@ Chat with him, watch him work, approve his actions — all from the island. No b
 ![Code: MIT](https://img.shields.io/badge/code-MIT-green)
 ![GitHub stars](https://img.shields.io/github/stars/Nikankh566/AgentKH?style=social)
 
-<img src="docs/media/island.png" width="300" alt="Agent KH island">
-<img src="docs/media/chat.png" width="640" alt="Chatting from the island">
-
 </div>
 
 ---
 
-## Why
+## ✨ What it feels like
+
+<div align="center">
+
+| | |
+|---|---|
+| <img src="docs/media/island.png" width="280" alt="Island"> | <img src="docs/media/hearts.png" width="280" alt="Hearts"> |
+| *The island — always there, eyes following you* | *Hover 2 seconds… hearts* 💕 |
+
+<img src="docs/media/chat.png" width="640" alt="Chatting from the island">
+
+*Click the island — it springs open. Chat, activity feed, settings.*
+
+</div>
+
+## 💡 Why
 
 AI assistants live in browser tabs you forget to open. **Agent KH lives on your screen** —
-a little Mochi-style friend in a black island at the top, with eyes that follow your
-cursor. He sees your screen, moves your mouse, types for you, runs commands, and asks
+a little companion in a black island at the top, with eyes that follow your cursor.
+He sees your screen, moves your mouse, types for you, runs commands, and asks
 permission before anything sensitive. When a new version drops, he tells you himself
 and updates in one click.
 
-## Features
+## 🚀 Features
 
 - 🟣 **Island companion** — a soft little character at the top of your screen: eyes follow your cursor, blinks, breathes, waves hello, celebrates when he's done
 - ✨ **Alive** — springy animations, floating hearts on long hover, poke him (three pokes = dizzy!), falls asleep when idle, little chimes
-- 💬 **Chat in the island** — click to expand; streaming replies with markdown, click the model pill to switch models
+- 💬 **Chat in the island** — click to expand; streaming replies with markdown, click the model pill to switch models, slash commands (`/new` `/model` `/screenshot`)
 - 📋 **Live activity feed** — watch every step: what he reads, runs and clicks
-- ✅ **Approvals in the island** — Allow / Always allow / Deny, with `Y` / `N` keyboard shortcuts
+- ✅ **Approvals in the island** — the island glows orange; Allow / Always allow / Deny, with `Y` / `N` keyboard shortcuts
 - 🔄 **Self-updating** — when a new release drops, a card appears in the island; one click downloads and installs it
 - 👁️ **Vision** — screenshots so he can actually *see* buttons, windows and dialogs
 - 🖱️ **Full mouse control** — move, click, double-click, scroll, drag
@@ -46,23 +61,27 @@ and updates in one click.
 - 🧠 **Long-term memory** — remembers facts about you across sessions
 - 🎭 **Editable personality** — `soul.md`, editable from Settings
 - 🌐 **Bilingual** — English by default, one tap for فارسی
-- 🖥️ **Drag him out** — tear Mochi off the island onto your desktop; double-click sends him home
+- 🖥️ **Drag him out** — tear him off the island onto your desktop; double-click sends him home
 
-<img src="docs/media/hearts.png" width="300" alt="Hearts on hover">
-<img src="docs/media/approval.png" width="640" alt="Approval with pulsing island">
+## 📥 Install
 
-## Install
+<div align="center">
 
-Download **[AgentKH-Setup.exe](https://github.com/Nikankh566/AgentKH/releases/latest)**
-from the Releases page and run it. It installs to `%LOCALAPPDATA%\AgentKH`,
-adds a Start Menu shortcut, and starts with Windows automatically.
+### [⬇️ Download AgentKH-Setup.exe](https://github.com/Nikankh566/AgentKH/releases/latest)
+
+*Latest release — free forever*
+
+</div>
+
+Run the installer — it installs to `%LOCALAPPDATA%\AgentKH`, adds a Start Menu
+shortcut, and starts with Windows automatically.
 
 > **Windows will show a warning the first time** — the installer isn't code-signed yet:
 > click **More info** → **Run anyway**. This is expected for unsigned open-source installers.
 
 Prefer portable? Grab **AgentKH-Windows.zip**, extract anywhere, run `AgentKH.exe`.
 
-## Using it
+## 🎮 Using it
 
 | What you do | What happens |
 |---|---|
@@ -79,7 +98,14 @@ Add your Gemini API key in ⚙️ Settings
 (free at [aistudio.google.com](https://aistudio.google.com) — no credit card),
 or point him at any OpenAI-compatible API.
 
-## Build it yourself
+## 🆕 What's new
+
+- **v3.2** — fixed the approval glow and badge, smoother island outline
+- **v3.1** — self-updater, custom icon, markdown chat, slash commands
+- **v3.0** — animations everywhere: springy island, hearts, poke, sleep, sounds
+- **v2.0** — native island app (no browser), desktop companion, approvals
+
+## 🔨 Build it yourself
 
 On Windows:
 ```bat
@@ -97,27 +123,27 @@ pip install pillow          # optional, enables vision
 python agentkh.py
 ```
 
-## Privacy
+## 🔒 Privacy
 
 - Runs **locally** — only your prompts (and screenshots you ask for) go to the LLM API
 - Your API key stays in your local `config.json`, never uploaded anywhere
 - Approval prompts for every sensitive action; auto-approve is off by default
 - Update checks only ask GitHub's API for the latest release tag — no telemetry
 
-## Project layout
+## 📁 Project layout
 
 | File | What it is |
 |---|---|
-| `agentkh.py` | Island app: Mochi, chat/activity/settings, approvals, updater UI |
+| `agentkh.py` | Island app: character, chat/activity/settings, approvals, updater UI |
 | `engine.py` | Agent core: LLM client, tools, agent loop |
-| `mochi.py` | Mochi character (canvas animation) |
+| `mochi.py` | The character (canvas animation) |
 | `sfx.py` | Little synthesized sounds |
 | `updater.py` | Self-update: check, download, install |
 | `desktop.py` | Mouse/keyboard/screenshot (pyautogui or Win32) |
 | `mcp.py` | MCP stdio client |
 | `soul.md` | Editable personality |
 
-## License
+## 📄 License
 
 MIT — free for personal and commercial use. See [LICENSE](LICENSE).
 
@@ -126,11 +152,19 @@ MIT — free for personal and commercial use. See [LICENSE](LICENSE).
 <details>
 <summary>🇮🇷 فارسی</summary>
 
+<div align="center">
+<img src="docs/media/pulse.gif" width="300" alt="Agent KH">
+</div>
+
 **Agent KH** یه دوست کوچیک هوش مصنوعیه که بالای صفحه‌ت زندگی می‌کنه — یه جزیره‌ی
 مشکی با یه کاراکتر بامزه که چشماش دنبالت می‌کنه. روش کلیک کن تا چت باز بشه؛
 بدون مرورگر، همه‌چیز توی همون جزیره اتفاق می‌افته. صفحه رو می‌بینه، موس و
 کیبورد رو کنترل می‌کنه، دستور اجرا می‌کنه، و قبل از هر کار حساسی اجازه می‌گیره.
-نسخه‌ی جدید که بیاد خودش خبرت می‌کنه و با یه کلیک آپدیت می‌شه.
+
+**امکانات:** انیمیشن‌های زنده، قلب با هاور، poke کردن، خوابیدن، صدا، تأیید با
+پالس نارنجی، آپدیت خودکار با یه کلیک، حافظه بلندمدت، پشتیبانی از MCP و فارسی.
+
 از صفحه‌ی [Releases](https://github.com/Nikankh566/AgentKH/releases) فایل
-`AgentKH-Setup.exe` رو دانلود و نصب کن.
+**AgentKH-Setup.exe** رو دانلود و نصب کن — رایگان، برای همیشه.
+
 </details>
