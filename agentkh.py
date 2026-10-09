@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Jinni — personal desktop AI agent (Persian-first)
+Agent KH — personal desktop AI agent (Persian-first)
 =================================================
 Runs on your own computer, controls your system (with your approval),
 and talks to Gemini API or any OpenAI-compatible API.
@@ -120,7 +120,7 @@ def db():
 def load_soul():
     if os.path.exists(SOUL_PATH):
         return open(SOUL_PATH, encoding="utf-8").read()
-    return "You are Jinni, a helpful personal AI agent."
+    return "You are Agent KH, a helpful personal AI agent."
 
 
 # ---------------------------------------------------------------- LLM client
