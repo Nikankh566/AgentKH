@@ -22,6 +22,19 @@ No browser tabs, no terminal windows, no fuss.
 ![Code: MIT](https://img.shields.io/badge/code-MIT-green)
 ![GitHub stars](https://img.shields.io/github/stars/Nikankh566/AgentKH?style=social)
 
+### 📥 Download
+
+| Platform | File | Notes |
+|---|---|---|
+| 🪟 Windows 64-bit | [**AgentKH-Setup.exe**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Setup.exe) | Installer (recommended) |
+| 🪟 Windows 32-bit | [**AgentKH-Setup-x86.exe**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Setup-x86.exe) | For older PCs |
+| 🖥️ Windows (no WebView2) | [**AgentKH-Qt-Setup.exe**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Qt-Setup.exe) | Bundled Chromium, zero setup |
+| 🐧 Linux | [**AgentKH-Linux.tar.gz**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Linux.tar.gz) | Extract & run |
+| 🍎 macOS | [**AgentKH-macOS.zip**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-macOS.zip) | Apple Silicon |
+| 📱 Android | [**AgentKH-Android.apk**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Android.apk) | Bring your own API key |
+
+*Portable zips and the Play-signed AAB are on the [releases page](https://github.com/Nikankh566/AgentKH/releases).*
+
 </div>
 
 ---
@@ -88,15 +101,7 @@ and updates in one click.
 
 ## 📥 Install
 
-<div align="center">
-
-### [⬇️ Download for 64-bit Windows](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Setup.exe)
-
-*Latest release — free forever · [32-bit installer](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Setup-x86.exe) also available*
-
-> **WebView2 problems?** Get the [**Qt edition**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Qt-Setup.exe) — it bundles its own Chromium and needs **nothing** installed.
-
-</div>
+### 🪟 Windows
 
 Run the installer — it installs to `%LOCALAPPDATA%\AgentKH`, adds a Start Menu
 shortcut, and starts with Windows automatically.
@@ -104,8 +109,8 @@ shortcut, and starts with Windows automatically.
 > **Windows will show a warning the first time** — the installer isn't code-signed yet:
 > click **More info** → **Run anyway**. This is expected for unsigned open-source installers.
 >
-> **Note:** Agent KH needs the free [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
-> (most Windows 10/11 PCs already have it). The installer warns you if it's missing.
+> **Note:** the classic edition needs the free [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
+> (most Windows 10/11 PCs already have it). WebView2 trouble? Use the **Qt edition** — zero setup.
 
 Prefer portable? Grab **AgentKH-Windows.zip**, extract anywhere, run `AgentKH.exe`.
 
