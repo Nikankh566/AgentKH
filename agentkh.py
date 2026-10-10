@@ -172,6 +172,10 @@ class Bridge:
     def set_muted(self, m):
         self.muted = bool(m)
 
+    def save_theme(self, color):
+        self.eng.config["theme"] = color
+        self.eng.save_config()
+
     def sound(self, name):
         if not self.muted:
             fn = getattr(sfx, name, None)

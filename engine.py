@@ -54,6 +54,7 @@ DEFAULT_CONFIG = {
     "home_only": True,
     "mcp_servers": {},
     "lang": "en",                   # "en" (default) | "fa"
+    "theme": "#7c6cf5",
 }
 
 STRINGS = {

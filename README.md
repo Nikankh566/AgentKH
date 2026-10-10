@@ -109,6 +109,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v4.1** — voice input 🎤, file attachments 📎, theme colors 🎨, quick actions, chat export 💾
 - **v4.0** — brand-new web UI (HTML/CSS): buttery animations, cuter character, real glow effects
 - **v3.2** — fixed the approval glow and badge, smoother island outline
 - **v3.1** — self-updater, custom icon, markdown chat, slash commands

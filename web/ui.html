@@ -148,19 +148,35 @@
     transition: all .15s;
   }
   #model-pill:hover { border-color: #7c6cf5; color: #fff; }
-  #input-row { display: flex; gap: 10px; padding: 12px 16px 16px; }
+  #input-row { display: flex; gap: 8px; padding: 12px 16px 6px; }
   #chat-input {
     flex: 1; background: #1c1c22; border: 1px solid #33333d; color: #fff;
     border-radius: 12px; padding: 12px 14px; font-size: 14px; outline: none;
     font-family: inherit; transition: border-color .15s;
   }
-  #chat-input:focus { border-color: #7c6cf5; }
+  #chat-input:focus { border-color: var(--accent); }
   #send-btn {
-    background: #7c6cf5; color: #fff; border: none; border-radius: 12px;
+    background: var(--accent); color: #fff; border: none; border-radius: 12px;
     padding: 0 22px; font-size: 15px; font-weight: 600; cursor: pointer;
-    transition: background .15s;
+    transition: filter .15s;
   }
-  #send-btn:hover { background: #8f7ff7; }
+  #send-btn:hover { filter: brightness(1.15); }
+  .mini-btn {
+    background: #1c1c22; border: 1px solid #33333d; color: #8a8fa3;
+    border-radius: 12px; padding: 0 13px; font-size: 17px; cursor: pointer;
+    transition: all .15s;
+  }
+  .mini-btn:hover { border-color: var(--accent); color: #fff; }
+  .mini-btn.recording { border-color: #ff5252; color: #ff5252; animation: recPulse 1s infinite; }
+  @keyframes recPulse { 50% { opacity: .5; } }
+  #quick-row { display: flex; gap: 8px; padding: 8px 16px 14px; }
+  .quick {
+    background: #1c1c22; border: 1px solid #2c2c34; color: #b9bdc9;
+    font-size: 12.5px; padding: 7px 13px; border-radius: 18px; cursor: pointer;
+    font-family: inherit; transition: all .15s;
+  }
+  .quick:hover { border-color: var(--accent); color: #fff; }
+  :root { --accent: #7c6cf5; }
 
   /* cards */
   .card {
@@ -209,6 +225,19 @@
   .check { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
   .check input { width: 18px; height: 18px; accent-color: #7c6cf5; }
   #ver-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; color: #8a8fa3; font-size: 13px; }
+  .theme-dot {
+    width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; transition: all .15s;
+  }
+  .theme-dot:hover { transform: scale(1.12); }
+  .theme-dot.sel { border-color: #fff; box-shadow: 0 0 0 2px #33333d; }
+  #attach-list { margin: 0 18px 4px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .attach-chip {
+    background: #23232b; border: 1px solid #3ddc84; color: #3ddc84;
+    font-size: 12px; padding: 4px 10px; border-radius: 14px;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .attach-chip button { background: none; border: none; color: #8a8fa3; cursor: pointer; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -275,11 +304,21 @@
     <div class="view active" id="view-chat">
       <div id="chat-log"></div>
       <div id="cards"></div>
+      <div id="attach-list"></div>
       <button id="model-pill" title="Switch model">⚪ …</button>
       <div id="input-row">
         <input id="chat-input" placeholder="Ask anything…  (/new /model /screenshot)" autocomplete="off">
+        <button class="mini-btn" id="attach-btn" title="Attach file">📎</button>
+        <button class="mini-btn" id="mic-btn" title="Voice input">🎤</button>
         <button id="send-btn">➤</button>
       </div>
+      <div id="quick-row">
+        <button class="quick" data-q="Take a screenshot and tell me what you see">📸 Describe screen</button>
+        <button class="quick" id="clip-btn">📋 Clipboard</button>
+        <button class="quick" data-q="What can you do? Give me a quick tour of your abilities">✨ Tour</button>
+        <button class="quick" id="export-btn">💾 Export chat</button>
+      </div>
+      <input type="file" id="file-input" style="display:none" multiple>
     </div>
 
     <div class="view" id="view-activity">
@@ -297,6 +336,14 @@
         <div class="field"><label class="check"><input type="checkbox" id="s-auto"> Auto-approve commands <span style="color:#ff7b7b">(careful!)</span></label></div>
         <div class="field"><label>Language</label>
           <select id="s-lang"><option value="en">en</option><option value="fa">fa</option></select></div>
+        <div class="field"><label>Accent color</label>
+          <div id="theme-row" style="display:flex;gap:10px;">
+            <button class="theme-dot" data-c="#7c6cf5" style="background:#7c6cf5" title="Purple"></button>
+            <button class="theme-dot" data-c="#1a9fff" style="background:#1a9fff" title="Blue"></button>
+            <button class="theme-dot" data-c="#3ddc84" style="background:#3ddc84" title="Green"></button>
+            <button class="theme-dot" data-c="#ff9f2e" style="background:#ff9f2e" title="Orange"></button>
+            <button class="theme-dot" data-c="#ff6b8a" style="background:#ff6b8a" title="Pink"></button>
+          </div></div>
         <div class="field"><label>Personality (soul.md)</label><textarea id="s-soul"></textarea></div>
         <div class="field"><label>MCP servers <span style="color:#5a5e6e">(one per line: name | command args…)</span></label>
           <textarea id="s-mcp" rows="3" style="height:64px"></textarea></div>
@@ -447,9 +494,14 @@ function onSys(t, cls) { addMsg(cls || "sys", esc(t)); }
 function onAct(t) { addAct(esc(t)); }
 
 function send() {
-  const inp = $("chat-input"), text = inp.value.trim();
-  if (!text) return;
+  const inp = $("chat-input");
+  let text = inp.value.trim();
+  if ((!text && !attachments.length)) return;
   inp.value = "";
+  if (attachments.length) {
+    attachments.forEach(a => { text += `\n\n[Attached file: ${a.name}]\n\`\`\`\n${a.content}\n\`\`\``; });
+    attachments = []; renderAttach();
+  }
   if (text.startsWith("/")) { slash(text); return; }
   addMsg("user", esc(text));
   if (!panel.classList.contains("open")) openPanel();
@@ -544,6 +596,7 @@ async function loadSettings() {
   $("s-mcp").value = (cfg.mcp_servers || []).map(s => s.name + " | " + s.cmd).join("\n");
   $("ver-text").textContent = "v" + (await api.get_version() || "?");
   $("model-pill").textContent = "⚪ " + (cfg.gemini_model || "…").replace("gemini-", "");
+  applyTheme(cfg.theme || "#7c6cf5");
 }
 $("save-btn").onclick = async () => {
   const lines = $("s-custom").value.split("\n");
@@ -566,6 +619,91 @@ setMood("idle");
 setTimeout(() => { setMood("happy"); api.sound("greeting"); setTimeout(() => setMood("idle"), 1200); }, 700);
 loadSettings();
 setTimeout(() => api.boot_done(), 400);
+
+/* ---------- v4.1: voice input ---------- */
+$("mic-btn").onclick = () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { onSys("voice input not supported in this webview", "err"); return; }
+  const rec = new SR();
+  rec.lang = ($("s-lang").value === "fa") ? "fa-IR" : "en-US";
+  rec.interimResults = false;
+  $("mic-btn").classList.add("recording");
+  rec.onresult = e => { $("chat-input").value += e.results[0][0].transcript + " "; $("chat-input").focus(); };
+  rec.onend = () => $("mic-btn").classList.remove("recording");
+  rec.onerror = () => { $("mic-btn").classList.remove("recording"); onSys("mic error — check permission", "err"); };
+  try { rec.start(); } catch(e) {}
+};
+
+/* ---------- v4.1: file attachments ---------- */
+let attachments = [];  // {name, content}
+$("attach-btn").onclick = () => $("file-input").click();
+$("file-input").onchange = e => {
+  [...e.target.files].forEach(f => {
+    if (f.size > 120000) { onSys(`"${f.name}" too big (120KB max)`, "err"); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      attachments.push({name: f.name, content: String(r.result).slice(0, 60000)});
+      renderAttach();
+    };
+    r.readAsText(f);
+  });
+  e.target.value = "";
+};
+function renderAttach() {
+  const box = $("attach-list"); box.innerHTML = "";
+  attachments.forEach((a, i) => {
+    const c = document.createElement("div");
+    c.className = "attach-chip";
+    c.innerHTML = `📎 ${esc(a.name)} <button>✕</button>`;
+    c.querySelector("button").onclick = () => { attachments.splice(i, 1); renderAttach(); };
+    box.appendChild(c);
+  });
+}
+// drag & drop onto panel
+panel.addEventListener("dragover", e => e.preventDefault());
+panel.addEventListener("drop", e => {
+  e.preventDefault();
+  [...(e.dataTransfer.files || [])].forEach(f => {
+    if (f.size > 120000) return;
+    const r = new FileReader();
+    r.onload = () => { attachments.push({name: f.name, content: String(r.result).slice(0, 60000)}); renderAttach(); };
+    r.readAsText(f);
+  });
+});
+
+/* ---------- v4.1: quick actions ---------- */
+document.querySelectorAll(".quick[data-q]").forEach(b => b.onclick = () => {
+  $("chat-input").value = b.dataset.q; send();
+});
+$("clip-btn").onclick = async () => {
+  try {
+    const t = await navigator.clipboard.readText();
+    if (!t.trim()) { onSys("clipboard is empty", "err"); return; }
+    $("chat-input").value = `Here's what's in my clipboard:\n\`\`\`\n${t.slice(0, 8000)}\n\`\`\`\nWhat do you make of it?`;
+    send();
+  } catch(e) { onSys("can't read clipboard — permission denied", "err"); }
+};
+$("export-btn").onclick = () => {
+  let out = "# Agent KH chat export\n\n";
+  chatLog.querySelectorAll(".msg").forEach(m => {
+    const who = m.classList.contains("user") ? "🧑 You" : m.classList.contains("bot") ? "🤖 Agent KH" : "ℹ️";
+    out += `## ${who}\n${m.innerText}\n\n`;
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([out], {type: "text/markdown"}));
+  a.download = "agentkh-chat.md"; a.click();
+  onSys("chat exported ✓");
+};
+
+/* ---------- v4.1: themes ---------- */
+function applyTheme(color) {
+  document.documentElement.style.setProperty("--accent", color);
+  document.querySelectorAll(".theme-dot").forEach(d => d.classList.toggle("sel", d.dataset.c === color));
+}
+document.querySelectorAll(".theme-dot").forEach(d => d.onclick = () => {
+  applyTheme(d.dataset.c);
+  api.save_theme(d.dataset.c);
+});
 </script>
 </body>
 </html>
