@@ -212,6 +212,11 @@ async function* streamOpenAI(sys, msgs) {
 
 /* ----- SSE reader ----- */
 async function* readSSE(response, pick) {
+  const ct = (response.headers.get("content-type") || "").toLowerCase();
+  if (ct.includes("text/html")) {
+    const t = (await response.text()).slice(0, 200);
+    throw new Error("Network returned a web page instead of API data (proxy/VPN?). " + t);
+  }
   const reader = response.body.getReader();
   const dec = new TextDecoder();
   let buf = "";
