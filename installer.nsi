@@ -27,6 +27,12 @@ Unicode True
 !insertmacro MUI_LANGUAGE "English"
 
 Section "Install"
+  ; WebView2 runtime check — pywebview needs it to open its window
+  ReadRegStr $0 HKLM "SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C573A9A29B}" "pv"
+  ${If} $0 == ""
+    MessageBox MB_OK|MB_ICONEXCLAMATION "Agent KH needs the Microsoft Edge WebView2 Runtime to run.$\n$\nPlease install it (free) from:$\nhttps://developer.microsoft.com/microsoft-edge/webview2/$\n(choose 'Evergreen Standalone Installer')$\n$\nThe installation will continue, but Agent KH won't start until WebView2 is installed."
+  ${EndIf}
+
   SetOutPath "$INSTDIR"
   ; files built by PyInstaller (dist\AgentKH\*)
   File /r "dist\AgentKH\*.*"

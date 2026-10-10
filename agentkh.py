@@ -291,7 +291,29 @@ def main():
         sw = 1280
     win.move((sw - ISLAND_W) // 2, 0)
     # JS polls for pushed events
-    webview.start(debug=False)
+    try:
+        webview.start(debug=False)
+    except Exception as e:
+        _show_webview_error(e)
+
+
+def _show_webview_error(e):
+    """Friendly error when the WebView2 window can't start (usually missing runtime)."""
+    import ctypes
+    msg = (
+        "Agent KH couldn't open its window.\n\n"
+        "This usually means the Microsoft Edge WebView2 Runtime is not installed.\n\n"
+        "Download it free from:\n"
+        "https://developer.microsoft.com/microsoft-edge/webview2/\n"
+        "(choose 'Evergreen Standalone Installer')\n\n"
+        "After installing, run Agent KH again.\n\n"
+        "Technical detail: %s" % e
+    )
+    try:
+        ctypes.windll.user32.MessageBoxW(None, msg, "Agent KH — WebView2 needed", 0x40)
+    except Exception:
+        print(msg)
+    raise SystemExit(1)
 
 
 if __name__ == "__main__":

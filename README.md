@@ -97,6 +97,9 @@ shortcut, and starts with Windows automatically.
 
 > **Windows will show a warning the first time** — the installer isn't code-signed yet:
 > click **More info** → **Run anyway**. This is expected for unsigned open-source installers.
+>
+> **Note:** Agent KH needs the free [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
+> (most Windows 10/11 PCs already have it). The installer warns you if it's missing.
 
 Prefer portable? Grab **AgentKH-Windows.zip**, extract anywhere, run `AgentKH.exe`.
 
