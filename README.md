@@ -151,6 +151,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v5.3** — 📱 Android rebuilt: cleaner dark UI, **any API** (Gemini or OpenAI-compatible), connection test, **Play-signed** release
 - **v5.2** — 📱 **Android app!** Agentic chat in your pocket — bring your own Gemini API key
 - **v5.1** — 🐧 Linux + 🍎 macOS builds! (Qt edition on Linux, native WKWebView on Mac)
 - **v5.0** — **Qt edition** 🖥️: same app, zero WebView2 dependency (bundled Chromium)

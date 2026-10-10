@@ -177,18 +177,64 @@ jobs:
           print("icons done")
           EOF
 
+      - name: Set Play-ready version
+        working-directory: mobile/android/app
+        run: |
+          VER="${GITHUB_REF#refs/tags/v}"
+          CODE=$(date +%y%m%d%H)
+          sed -i "s/versionCode .*/versionCode $CODE/" build.gradle
+          sed -i "s/versionName .*/versionName \"$VER\"/" build.gradle
+          grep -n "versionCode\|versionName" build.gradle | head -4
+
       - name: Build debug APK
         working-directory: mobile/android
         run: ./gradlew assembleDebug --no-daemon -q
 
-      - name: Rename APK
-        run: cp mobile/android/app/build/outputs/apk/debug/app-debug.apk AgentKH-Android.apk
+      - name: Prepare signing keystore
+        working-directory: mobile/android
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.jks
+            echo "using stored keystore"
+          else
+            keytool -genkeypair -keystore release.jks -alias "${{ secrets.ANDROID_KEY_ALIAS }}" \
+              -keyalg RSA -keysize 2048 -validity 9125 \
+              -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+              -keypass "${{ secrets.ANDROID_KEY_PASSWORD }}" \
+              -dname "CN=Agent KH, OU=Mobile, O=Nikankh, C=IR"
+            echo "generated fresh keystore"
+            echo "NEW_KEYSTORE=1" >> $GITHUB_ENV
+          fi
+
+      - name: Build signed release APK + AAB
+        working-directory: mobile/android
+        run: |
+          ./gradlew assembleRelease bundleRelease --no-daemon -q \
+            -Pandroid.injected.signing.store.file=$PWD/release.jks \
+            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+          cp app/build/outputs/apk/release/app-release.apk $GITHUB_WORKSPACE/AgentKH-Android.apk
+          cp app/build/outputs/bundle/release/app-release.aab $GITHUB_WORKSPACE/AgentKH-Android.aab
+
+      - name: Upload keystore backup (first run only)
+        if: env.NEW_KEYSTORE == '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-keystore-backup
+          path: mobile/android/release.jks
+
+      - name: Clean keystore
+        working-directory: mobile/android
+        run: rm -f release.jks
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: AgentKH-Android
-          path: AgentKH-Android.apk
+          path: |
+            AgentKH-Android.apk
+            AgentKH-Android.aab
 
   release:
     needs: [build, build-qt, build-linux, build-macos, build-android]
@@ -214,6 +260,7 @@ jobs:
             artifacts/AgentKH-Linux.tar.gz
             artifacts/AgentKH-macOS.zip
             artifacts/AgentKH-Android.apk
+            artifacts/AgentKH-Android.aab
           body: |
             ## Agent KH — your personal AI desktop agent ✨
             - `AgentKH-Setup.exe` — installer, 64-bit Windows (recommended): installs, adds Start Menu shortcut, auto-starts with Windows
