@@ -1,6 +1,5 @@
-import type { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
+/** @type {import('@capacitor/cli').CapacitorConfig} */
+const config = {
   appId: 'com.nikankh.agentkh',
   appName: 'Agent KH',
   webDir: 'www',
@@ -9,4 +8,4 @@ const config: CapacitorConfig = {
   },
 };
 
-export default config;
+module.exports = config;
