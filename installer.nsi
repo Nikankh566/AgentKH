@@ -1,12 +1,19 @@
 ; Agent KH — NSIS installer script (Windows setup wizard)
-; Build: makensis installer.nsi   (run from the folder containing dist\AgentKH\)
-; Output: AgentKH-Setup.exe
+; Build: makensis /DOUTFILE=AgentKH-Setup.exe /DAPPTITLE="Agent KH" installer.nsi
+;        (run from the folder containing dist\AgentKH\)
 
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 
-Name "Agent KH"
-OutFile "AgentKH-Setup.exe"
+!ifndef OUTFILE
+  !define OUTFILE "AgentKH-Setup.exe"
+!endif
+!ifndef APPTITLE
+  !define APPTITLE "Agent KH"
+!endif
+
+Name "${APPTITLE}"
+OutFile "${OUTFILE}"
 InstallDir "$LOCALAPPDATA\AgentKH"
 RequestExecutionLevel user
 Unicode True
@@ -25,8 +32,8 @@ Section "Install"
   File /r "dist\AgentKH\*.*"
 
   ; Start Menu shortcut
-  CreateDirectory "$SMPROGRAMS\Agent KH"
-  CreateShortcut "$SMPROGRAMS\Agent KH\Agent KH.lnk" "$INSTDIR\AgentKH.exe" "" "$INSTDIR\AgentKH.exe"
+  CreateDirectory "$SMPROGRAMS\${APPTITLE}"
+  CreateShortcut "$SMPROGRAMS\${APPTITLE}\${APPTITLE}.lnk" "$INSTDIR\AgentKH.exe" "" "$INSTDIR\AgentKH.exe"
 
   ; auto-start with Windows
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "AgentKH" '"$INSTDIR\AgentKH.exe"'
@@ -45,6 +52,6 @@ SectionEnd
 Section "Uninstall"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\AgentKH"
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "AgentKH"
-  RMDir /r "$SMPROGRAMS\Agent KH"
+  RMDir /r "$SMPROGRAMS\${APPTITLE}"
   RMDir /r "$INSTDIR"
 SectionEnd

@@ -55,6 +55,8 @@ DEFAULT_CONFIG = {
     "mcp_servers": {},
     "lang": "en",                   # "en" (default) | "fa"
     "theme": "#7c6cf5",
+    "tts": False,
+    "pinned": False,
 }
 
 STRINGS = {
@@ -78,6 +80,41 @@ class Engine:
         self.mcp = None
         self.always_allow = set()
         self._busy = False
+        self.on_reminder = None   # set by Bridge: called with text when a reminder fires
+        self._timers = []
+
+    # ------------------------------------------------------------ reminders
+    def set_reminder(self, seconds, text):
+        seconds = max(1, min(int(seconds), 86400))
+        t = threading.Timer(seconds, self._reminder_fired, args=(text,))
+        t.daemon = True
+        self._timers.append(t)
+        t.start()
+        return seconds
+
+    def _reminder_fired(self, text):
+        if self.on_reminder:
+            try:
+                self.on_reminder(text)
+            except Exception:
+                pass
+
+    # ------------------------------------------------------------ notes
+    def _notes_path(self):
+        return os.path.join(os.path.dirname(CONFIG_PATH), "notes.json")
+
+    def _load_notes(self):
+        p = self._notes_path()
+        if os.path.exists(p):
+            try:
+                return json.load(open(p, encoding="utf-8"))
+            except Exception:
+                pass
+        return []
+
+    def _save_notes(self, notes):
+        json.dump(notes, open(self._notes_path(), "w", encoding="utf-8"),
+                  ensure_ascii=False, indent=2)
 
     # ------------------------------------------------------------ config
     def load_config(self):
@@ -261,6 +298,40 @@ class Engine:
         con.close()
         return "remembered: " + fact
 
+    def tool_save_note(self, args):
+        text = (args.get("text") or "").strip()
+        if not text:
+            return "empty note"
+        notes = self._load_notes()
+        notes.append({"text": text, "ts": time.time()})
+        self._save_notes(notes)
+        return "note #%d saved" % len(notes)
+
+    def tool_list_notes(self, args):
+        notes = self._load_notes()
+        if not notes:
+            return "no notes yet"
+        return "\n".join("#%d: %s" % (i + 1, n["text"]) for i, n in enumerate(notes))
+
+    def tool_delete_note(self, args):
+        idx = int(args.get("index", 0)) - 1
+        notes = self._load_notes()
+        if 0 <= idx < len(notes):
+            gone = notes.pop(idx)
+            self._save_notes(notes)
+            return "deleted: " + gone["text"][:60]
+        return "no such note"
+
+    def tool_set_reminder(self, args):
+        seconds = args.get("seconds", 0)
+        text = (args.get("text") or "").strip()
+        if not text:
+            return "reminder needs text"
+        s = self.set_reminder(seconds, text)
+        mins = s / 60
+        when = ("%d seconds" % s) if s < 90 else ("%.1f minutes" % mins)
+        return "reminder set for %s from now" % when
+
     def _desk(self):
         if _desktop is None or not _desktop.available():
             raise RuntimeError("Mouse/keyboard unavailable on this machine.")
@@ -347,6 +418,19 @@ class Engine:
             ("remember", False, "Save a long-term fact about the user.",
              T.tool_remember, {"type": "object", "properties": {
                  "fact": {"type": "string"}}, "required": ["fact"]}),
+            ("save_note", False, "Save a quick note the user can ask for later.",
+             T.tool_save_note, {"type": "object", "properties": {
+                 "text": {"type": "string"}}, "required": ["text"]}),
+            ("list_notes", False, "List saved notes.",
+             T.tool_list_notes, {"type": "object", "properties": {}}),
+            ("delete_note", False, "Delete a note by its number.",
+             T.tool_delete_note, {"type": "object", "properties": {
+                 "index": {"type": "number"}}, "required": ["index"]}),
+            ("set_reminder", False,
+             "Set a reminder: notify the user after N seconds with a message.",
+             T.tool_set_reminder, {"type": "object", "properties": {
+                 "seconds": {"type": "number"},
+                 "text": {"type": "string"}}, "required": ["seconds", "text"]}),
             ("mouse_move", True, "Move the mouse cursor to x,y.",
              T.tool_mouse_move, {"type": "object", "properties": {
                  "x": {"type": "number"}, "y": {"type": "number"}},

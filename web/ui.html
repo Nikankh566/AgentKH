@@ -344,6 +344,8 @@
             <button class="theme-dot" data-c="#ff9f2e" style="background:#ff9f2e" title="Orange"></button>
             <button class="theme-dot" data-c="#ff6b8a" style="background:#ff6b8a" title="Pink"></button>
           </div></div>
+        <div class="field"><label><input type="checkbox" id="s-tts"> Speak replies aloud 🔊</label></div>
+        <div class="field"><label><input type="checkbox" id="s-pin"> Keep window on top 📌</label></div>
         <div class="field"><label>Personality (soul.md)</label><textarea id="s-soul"></textarea></div>
         <div class="field"><label>MCP servers <span style="color:#5a5e6e">(one per line: name | command args…)</span></label>
           <textarea id="s-mcp" rows="3" style="height:64px"></textarea></div>
@@ -488,7 +490,7 @@ function onToken(t) {
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 function onStreamEnd() {
-  if (streamEl) { streamEl.innerHTML = md(streamBuf); streamEl = null; streamBuf = ""; }
+  if (streamEl) { streamEl.innerHTML = md(streamBuf); speak(streamEl.innerText); streamEl = null; streamBuf = ""; }
 }
 function onSys(t, cls) { addMsg(cls || "sys", esc(t)); }
 function onAct(t) { addAct(esc(t)); }
@@ -597,6 +599,9 @@ async function loadSettings() {
   $("ver-text").textContent = "v" + (await api.get_version() || "?");
   $("model-pill").textContent = "⚪ " + (cfg.gemini_model || "…").replace("gemini-", "");
   applyTheme(cfg.theme || "#7c6cf5");
+  $("s-tts").checked = !!cfg.tts;
+  $("s-pin").checked = !!cfg.pinned;
+  if (cfg.pinned) api.set_pinned(true);
 }
 $("save-btn").onclick = async () => {
   const lines = $("s-custom").value.split("\n");
@@ -608,9 +613,39 @@ $("save-btn").onclick = async () => {
     custom: {url: lines[0]||"", key: lines[1]||"", model: lines[2]||""},
     auto_approve: $("s-auto").checked, lang: $("s-lang").value,
     soul: $("s-soul").value, mcp_servers: mcp,
+    tts: $("s-tts").checked,
   });
+  api.set_pinned($("s-pin").checked);
   onSys("settings saved ✓");
 };
+
+/* ---------- v4.2: text-to-speech ---------- */
+function speak(text) {
+  if (!$("s-tts") || !$("s-tts").checked) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.replace(/[*_`#>\[\]()]/g, "").slice(0, 400));
+    u.lang = ($("s-lang").value === "fa") ? "fa-IR" : "en-US";
+    u.rate = 1.05;
+    speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+/* ---------- v4.2: reminder popup ---------- */
+function onReminder(text) {
+  const c = document.createElement("div");
+  c.className = "card approval";
+  c.innerHTML = `<h4>🔔 Reminder</h4><p>${esc(text)}</p>
+    <div class="row"><button class="btn green">OK</button><button class="btn ghost">Snooze 5 min</button></div>`;
+  cards.appendChild(c);
+  c.querySelector(".btn.green").onclick = () => c.remove();
+  c.querySelector(".btn.ghost").onclick = () => { api.snooze_reminder(text); c.remove(); };
+  if (!panel.classList.contains("open")) openPanel();
+  switchView("chat");
+  setMood("happy"); setLabel("reminder! 🔔"); api.sound("notify");
+  island.classList.add("approval");
+  setTimeout(() => { island.classList.remove("approval"); setLabel("Agent KH"); }, 8000);
+}
 $("upd-btn").onclick = () => api.check_updates();
 
 /* ---------- boot ---------- */

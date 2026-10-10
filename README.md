@@ -69,15 +69,26 @@ and updates in one click.
 <td>🔌 <b>MCP support</b><br><sub>Connect any Model Context Protocol server</sub></td>
 <td>🧠 <b>Memory</b><br><sub>Remembers facts about you across sessions</sub></td>
 </tr>
+<tr>
+<td>🔊 <b>Speaks to you</b><br><sub>Optional text-to-speech replies (EN/FA)</sub></td>
+<td>⏰ <b>Reminders</b><br><sub>"Remind me in 10 minutes" — he pops up when time's up</sub></td>
+</tr>
+<tr>
+<td>📝 <b>Quick notes</b><br><sub>"Note: buy milk" — saved locally, ask for them anytime</sub></td>
+<td>📌 <b>Pin on top</b><br><sub>Keep the island above all windows</sub></td>
+</tr>
 </table>
+
+> **Also:** 32-bit Windows builds, voice input 🎤, file attachments 📎, themes 🎨,
+> quick actions ⚡, chat export 💾 — see the [release notes](https://github.com/Nikankh566/AgentKH/releases/latest).
 
 ## 📥 Install
 
 <div align="center">
 
-### [⬇️ Download AgentKH-Setup.exe](https://github.com/Nikankh566/AgentKH/releases/latest)
+### [⬇️ Download for 64-bit Windows](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Setup.exe)
 
-*Latest release — free forever*
+*Latest release — free forever · [32-bit installer](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Setup-x86.exe) also available*
 
 </div>
 
@@ -109,6 +120,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v4.2** — speaks replies 🔊, reminders ⏰, quick notes 📝, pin-on-top 📌, **32-bit builds**
 - **v4.1** — voice input 🎤, file attachments 📎, theme colors 🎨, quick actions, chat export 💾
 - **v4.0** — brand-new web UI (HTML/CSS): buttery animations, cuter character, real glow effects
 - **v3.2** — fixed the approval glow and badge, smoother island outline

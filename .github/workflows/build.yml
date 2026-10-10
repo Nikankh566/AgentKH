@@ -12,12 +12,28 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            py_arch: x64
+            suffix: ""
+            setup_exe: "AgentKH-Setup.exe"
+            zip_name: "AgentKH-Windows.zip"
+            app_title: "Agent KH"
+          - arch: x86
+            py_arch: x86
+            suffix: "-x86"
+            setup_exe: "AgentKH-Setup-x86.exe"
+            zip_name: "AgentKH-Windows-x86.zip"
+            app_title: "Agent KH (32-bit)"
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          architecture: ${{ matrix.py_arch }}
 
       - name: Install PyInstaller
         run: pip install pyinstaller pywebview pillow
@@ -33,28 +49,42 @@ jobs:
       - name: Build setup wizard (NSIS)
         run: |
           choco install nsis -y
-          & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
-          if (!(Test-Path "AgentKH-Setup.exe")) { throw "Setup exe was not created" }
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /DOUTFILE=${{ matrix.setup_exe }} /DAPPTITLE="${{ matrix.app_title }}" installer.nsi
+          if (!(Test-Path "${{ matrix.setup_exe }}")) { throw "Setup exe was not created" }
 
       - name: Zip portable package
-        run: Compress-Archive -Path dist/AgentKH -DestinationPath AgentKH-Windows.zip
+        run: Compress-Archive -Path dist/AgentKH -DestinationPath ${{ matrix.zip_name }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: AgentKH-Windows
+          name: AgentKH-Windows-${{ matrix.arch }}
           path: |
-            AgentKH-Windows.zip
-            AgentKH-Setup.exe
+            ${{ matrix.zip_name }}
+            ${{ matrix.setup_exe }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            AgentKH-Windows.zip
-            AgentKH-Setup.exe
+            artifacts/AgentKH-Setup.exe
+            artifacts/AgentKH-Windows.zip
+            artifacts/AgentKH-Setup-x86.exe
+            artifacts/AgentKH-Windows-x86.zip
           body: |
             ## Agent KH — your personal AI desktop agent ✨
-            - `AgentKH-Setup.exe` — installer (recommended): installs, adds Start Menu shortcut, auto-starts with Windows
-            - `AgentKH-Windows.zip` — portable: extract and run `AgentKH.exe`
+            - `AgentKH-Setup.exe` — installer, 64-bit (recommended): installs, adds Start Menu shortcut, auto-starts with Windows
+            - `AgentKH-Setup-x86.exe` — installer, 32-bit: for older 32-bit Windows
+            - `AgentKH-Windows.zip` — portable 64-bit: extract and run `AgentKH.exe`
+            - `AgentKH-Windows-x86.zip` — portable 32-bit

@@ -85,6 +85,10 @@ class Bridge:
         self._approval_ev = threading.Event()
         self._decision = "deny"
         self.muted = False
+        self.eng.on_reminder = self._fire_reminder
+
+    def _fire_reminder(self, text):
+        self.push("onReminder(%s)" % json.dumps(text))
 
     # ---------------------------------------------------------- js -> py
     def push(self, code):
@@ -175,6 +179,17 @@ class Bridge:
     def save_theme(self, color):
         self.eng.config["theme"] = color
         self.eng.save_config()
+
+    def set_pinned(self, p):
+        try:
+            self.window.on_top = bool(p)
+        except Exception:
+            pass
+        self.eng.config["pinned"] = bool(p)
+        self.eng.save_config()
+
+    def snooze_reminder(self, text):
+        self.eng.set_reminder(300, text)
 
     def sound(self, name):
         if not self.muted:
