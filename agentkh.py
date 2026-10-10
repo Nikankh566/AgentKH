@@ -10,8 +10,8 @@ import sys
 import threading
 import time
 
-import webview
-
+# NOTE: `webview` is imported lazily inside _run() so the Qt edition
+# (agentkh_qt.py) can reuse Bridge/Engine without pywebview installed.
 import engine
 from engine import Engine
 import updater
@@ -281,6 +281,7 @@ def main():
 
 
 def _run(bridge, html):
+    import webview  # lazy: Qt edition doesn't need pywebview
     win = webview.create_window(
         "Agent KH",
         html=html,
