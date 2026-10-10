@@ -221,7 +221,9 @@ class Bridge:
     def do_update(self):
         assets = getattr(self, "_update_assets", {})
         tag = getattr(self, "_update_tag", "")
-        url = assets.get("AgentKH-Setup.exe")
+        # Qt edition updates to the Qt installer; pywebview edition to the normal one
+        prefer = "AgentKH-Qt-Setup.exe" if getattr(self, "_is_qt", False) else "AgentKH-Setup.exe"
+        url = assets.get(prefer)
         if not url:
             for n, u in assets.items():
                 if n.lower().endswith(".exe"):

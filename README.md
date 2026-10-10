@@ -94,6 +94,8 @@ and updates in one click.
 
 *Latest release — free forever · [32-bit installer](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Setup-x86.exe) also available*
 
+> **WebView2 problems?** Get the [**Qt edition**](https://github.com/Nikankh566/AgentKH/releases/latest/download/AgentKH-Qt-Setup.exe) — it bundles its own Chromium and needs **nothing** installed.
+
 </div>
 
 Run the installer — it installs to `%LOCALAPPDATA%\AgentKH`, adds a Start Menu
@@ -127,6 +129,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v5.0** — **Qt edition** 🖥️: same app, zero WebView2 dependency (bundled Chromium)
 - **v4.4.1** — startup hardening: clean error dialog if WebView2 is missing
 - **v4.4** — Dynamic Island 🏝️: morphs mini/compact, live activities (speaking 🔊, working ⚙️, pomodoro 🍅)
 - **v4.3** — chat history 💾, mochi colors 🎨, personality presets 🎭, pomodoro timer ⏱️

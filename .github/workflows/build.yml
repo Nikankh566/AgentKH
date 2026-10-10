@@ -64,7 +64,7 @@ jobs:
             ${{ matrix.setup_exe }}
 
   release:
-    needs: build
+    needs: [build, build-qt]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -82,9 +82,52 @@ jobs:
             artifacts/AgentKH-Windows.zip
             artifacts/AgentKH-Setup-x86.exe
             artifacts/AgentKH-Windows-x86.zip
+            artifacts/AgentKH-Qt-Setup.exe
+            artifacts/AgentKH-Qt-Windows.zip
           body: |
             ## Agent KH — your personal AI desktop agent ✨
             - `AgentKH-Setup.exe` — installer, 64-bit (recommended): installs, adds Start Menu shortcut, auto-starts with Windows
             - `AgentKH-Setup-x86.exe` — installer, 32-bit: for older 32-bit Windows
             - `AgentKH-Windows.zip` — portable 64-bit: extract and run `AgentKH.exe`
             - `AgentKH-Windows-x86.zip` — portable 32-bit
+            - `AgentKH-Qt-Setup.exe` — installer, **Qt edition (no WebView2 needed)**: bundles its own Chromium
+            - `AgentKH-Qt-Windows.zip` — portable Qt edition
+
+  build-qt:
+    # Qt edition: PyQt6 + bundled Chromium — works WITHOUT the WebView2 runtime.
+    # PyQt6 is 64-bit only, so this job builds x64.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: x64
+
+      - name: Install dependencies
+        run: pip install pyinstaller pyqt6 pyqt6-webengine pillow
+
+      - name: Build executables
+        run: pyinstaller AgentKH-Qt.spec
+
+      - name: Copy installer files into package
+        run: |
+          Copy-Item installer-qt.nsi dist/AgentKH-Qt/
+
+      - name: Build setup wizard (NSIS)
+        run: |
+          choco install nsis -y
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /DOUTFILE=AgentKH-Qt-Setup.exe /DAPPTITLE="Agent KH Qt" installer-qt.nsi
+          if (!(Test-Path "AgentKH-Qt-Setup.exe")) { throw "Qt setup exe was not created" }
+
+      - name: Zip portable package
+        run: Compress-Archive -Path dist/AgentKH-Qt -DestinationPath AgentKH-Qt-Windows.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgentKH-Qt-Windows
+          path: |
+            AgentKH-Qt-Windows.zip
+            AgentKH-Qt-Setup.exe

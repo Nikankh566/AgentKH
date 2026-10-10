@@ -414,6 +414,45 @@
 </div>
 
 <script>
+/* Qt edition compatibility shim (agentkh_qt.py / PyQt6).
+   When running inside QWebEngineView with a QWebChannel, this maps
+   window.pywebview.api.* onto the channel so the UI code below is unchanged.
+   In the pywebview build (or a plain browser) this block is a no-op. */
+(function () {
+  if (typeof qt === "undefined" || !qt.webChannelTransport) return;
+  var bridge = null;
+  var waiters = [];
+  function whenReady(fn) { if (bridge) fn(bridge); else waiters.push(fn); }
+  var METHODS = ["boot_done","check_updates","clear_history","decide","do_update",
+    "get_config","get_soul","get_version","poll","resize","save_config",
+    "save_mochi_color","save_theme","send_message","set_muted","set_pinned",
+    "snooze_reminder","sound","switch_model"];
+  var apiObj = {};
+  METHODS.forEach(function (m) {
+    apiObj[m] = function () {
+      var args = Array.prototype.slice.call(arguments);
+      return new Promise(function (resolve) {
+        whenReady(function (b) {
+          try { b[m].apply(b, args.concat([resolve])); }
+          catch (e) { resolve(null); }
+        });
+      });
+    };
+  });
+  window.pywebview = { api: apiObj };
+  window.IS_QT = true;
+  var s = document.createElement("script");
+  s.src = "qrc:///qtwebchannel/qwebchannel.js";
+  s.onload = function () {
+    new QWebChannel(qt.webChannelTransport, function (ch) {
+      bridge = ch.objects.bridge;
+      var q = waiters.splice(0); q.forEach(function (fn) { fn(bridge); });
+    });
+  };
+  (document.head || document.documentElement).appendChild(s);
+})();
+</script>
+<script>
 "use strict";
 /* pywebview bridge (mocked when opened in a plain browser) */
 const api = (window.pywebview && window.pywebview.api) ? window.pywebview.api : new Proxy({}, {

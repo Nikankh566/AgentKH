@@ -13,7 +13,7 @@ import threading
 import urllib.request
 
 REPO = "Nikankh566/AgentKH"
-VERSION = "4.4.1"
+VERSION = "5.0.0"
 
 
 def _ver_tuple(v):
