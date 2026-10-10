@@ -158,6 +158,7 @@ jobs:
 
       - name: Brand the launcher icon
         run: |
+          pip install pillow -q
           python3 - <<'EOF'
           from PIL import Image
           import os
