@@ -123,8 +123,68 @@ jobs:
           name: AgentKH-macOS
           path: AgentKH-macOS.zip
 
+  build-android:
+    # Android edition: Capacitor wrapper around mobile/www — agentic chat,
+    # user provides their own Gemini API key (stored on-device only).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install JS dependencies
+        working-directory: mobile
+        run: npm install
+
+      - name: Create Android project
+        working-directory: mobile
+        run: npx cap add android
+
+      - name: Brand the launcher icon
+        run: |
+          python3 - <<'EOF'
+          from PIL import Image
+          import os
+          src = Image.open("docs/media/icon.png").convert("RGBA")
+          sizes = {"mipmap-mdpi": 48, "mipmap-hdpi": 72, "mipmap-xhdpi": 96,
+                   "mipmap-xxhdpi": 144, "mipmap-xxxhdpi": 192}
+          for d, s in sizes.items():
+              p = f"mobile/android/app/src/main/res/{d}"
+              os.makedirs(p, exist_ok=True)
+              # rounded-square background for adaptive feel
+              bg = Image.new("RGBA", (s, s), (26, 26, 46, 255))
+              fg = src.resize((int(s * 0.72), int(s * 0.72)), Image.LANCZOS)
+              bg.alpha_composite(fg, ((s - fg.width) // 2, (s - fg.height) // 2))
+              bg.convert("RGB").save(f"{p}/ic_launcher.png")
+              bg.convert("RGB").save(f"{p}/ic_launcher_round.png")
+          print("icons done")
+          EOF
+
+      - name: Build debug APK
+        working-directory: mobile/android
+        run: ./gradlew assembleDebug --no-daemon -q
+
+      - name: Rename APK
+        run: cp mobile/android/app/build/outputs/apk/debug/app-debug.apk AgentKH-Android.apk
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgentKH-Android
+          path: AgentKH-Android.apk
+
   release:
-    needs: [build, build-qt, build-linux, build-macos]
+    needs: [build, build-qt, build-linux, build-macos, build-android]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -146,6 +206,7 @@ jobs:
             artifacts/AgentKH-Qt-Windows.zip
             artifacts/AgentKH-Linux.tar.gz
             artifacts/AgentKH-macOS.zip
+            artifacts/AgentKH-Android.apk
           body: |
             ## Agent KH — your personal AI desktop agent ✨
             - `AgentKH-Setup.exe` — installer, 64-bit Windows (recommended): installs, adds Start Menu shortcut, auto-starts with Windows
@@ -156,6 +217,7 @@ jobs:
             - `AgentKH-Qt-Windows.zip` — portable Qt edition
             - `AgentKH-Linux.tar.gz` — Linux (Qt edition): extract and run `AgentKH-Qt/AgentKH-Qt`
             - `AgentKH-macOS.zip` — macOS Apple Silicon: extract and run `AgentKH/AgentKH`
+            - `AgentKH-Android.apk` — Android 📱: install on your phone, add your own Gemini API key
 
   build-qt:
     # Qt edition: PyQt6 + bundled Chromium — works WITHOUT the WebView2 runtime.

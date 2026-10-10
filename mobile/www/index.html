@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Agent KH</title>
+<style>
+  :root {
+    --bg: #0f0f1a; --card: #1a1a2e; --card2: #22223a;
+    --acc: #8b7bff; --acc2: #6c5ce7;
+    --txt: #f0f0f5; --mut: #8a8aa3;
+    --user: #6c5ce7; --ai: #22223a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--txt);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  /* header */
+  header {
+    display: flex; align-items: center; gap: 10px;
+    padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+    background: rgba(26,26,46,.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid #2a2a45; z-index: 5;
+  }
+  #mochi { width: 40px; height: 40px; border-radius: 50%; background: var(--acc); 
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  #mochi.thinking { animation: bounce .5s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  header .t { flex: 1; }
+  header .t b { font-size: 17px; }
+  header .t span { display: block; font-size: 12px; color: var(--mut); }
+  .iconbtn {
+    background: var(--card2); border: none; color: var(--txt); font-size: 20px;
+    width: 42px; height: 42px; border-radius: 12px; cursor: pointer;
+  }
+  /* chat */
+  #chat { flex: 1; overflow-y: auto; padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 85%; padding: 10px 13px; border-radius: 16px; font-size: 15px; line-height: 1.5; word-wrap: break-word; }
+  .msg.user { align-self: flex-end; background: var(--user); border-bottom-right-radius: 4px; }
+  .msg.ai { align-self: flex-start; background: var(--ai); border-bottom-left-radius: 4px; border: 1px solid #2e2e4d; }
+  .msg.sys { align-self: center; background: transparent; color: var(--mut); font-size: 12.5px; text-align: center; max-width: 95%; }
+  .msg.tool { align-self: flex-start; background: #1e2a1e; border: 1px solid #2e4d2e; font-size: 13px; color: #a8d5a8; max-width: 90%; }
+  .msg pre { background: #101020; padding: 8px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+  .msg code { background: #101020; padding: 1px 5px; border-radius: 5px; font-size: 13.5px; }
+  /* input */
+  #bar {
+    display: flex; gap: 8px; padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(26,26,46,.95); border-top: 1px solid #2a2a45;
+  }
+  #inp {
+    flex: 1; background: var(--card2); border: 1px solid #33335a; color: var(--txt);
+    border-radius: 20px; padding: 11px 16px; font-size: 15px; outline: none; resize: none;
+    max-height: 110px; font-family: inherit;
+  }
+  #inp:focus { border-color: var(--acc); }
+  #send {
+    width: 46px; height: 46px; border-radius: 50%; border: none; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #fff;
+    font-size: 20px; cursor: pointer;
+  }
+  #send:disabled { opacity: .5; }
+  /* settings sheet */
+  #sheet {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 20;
+    display: none; align-items: flex-end;
+  }
+  #sheet.open { display: flex; }
+  #panel {
+    width: 100%; background: var(--card); border-radius: 20px 20px 0 0;
+    padding: 18px 18px calc(22px + env(safe-area-inset-bottom));
+    max-height: 85%; overflow-y: auto;
+  }
+  #panel h3 { margin: 0 0 14px; font-size: 18px; }
+  #panel label { display: block; font-size: 13px; color: var(--mut); margin: 12px 0 6px; }
+  #panel input, #panel select {
+    width: 100%; background: var(--card2); border: 1px solid #33335a; color: var(--txt);
+    border-radius: 10px; padding: 11px 12px; font-size: 15px; outline: none; font-family: inherit;
+  }
+  .row { display: flex; gap: 10px; margin-top: 16px; }
+  .btn {
+    flex: 1; padding: 13px; border-radius: 12px; border: none; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+  }
+  .btn.primary { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #fff; }
+  .btn.ghost { background: var(--card2); color: var(--txt); }
+  .btn.danger { background: #3a1e2e; color: #ff8a8a; }
+  #keystat { font-size: 13px; color: var(--mut); margin-top: 8px; }
+  #keystat.ok { color: #7ddf7d; }
+  /* welcome */
+  #welcome { text-align: center; padding: 30px 24px; color: var(--mut); }
+  #welcome .big { font-size: 56px; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+  #welcome b { color: var(--txt); font-size: 18px; display: block; margin-bottom: 6px; }
+  #welcome p { font-size: 14px; line-height: 1.6; }
+  .typing { display: inline-block; }
+  .typing span { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--mut); margin: 0 2px; animation: tp 1s infinite; }
+  .typing span:nth-child(2) { animation-delay: .2s; } .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes tp { 0%,100%{opacity:.3} 50%{opacity:1} }
+</style>
+</head>
+<body>
+
+<header>
+  <div id="mochi">🤖</div>
+  <div class="t"><b>Agent KH</b><span id="status">your pocket agent ✨</span></div>
+  <button class="iconbtn" id="btn-settings" aria-label="Settings">⚙️</button>
+</header>
+
+<div id="chat">
+  <div id="welcome">
+    <div class="big">🤖</div>
+    <b>Hey, I'm Agent KH!</b>
+    <p>Your personal AI agent, in your pocket.<br>
+    Add your <b>Gemini API key</b> in ⚙️ Settings to start chatting.<br>
+    I can chat, save notes 📝, set reminders ⏰ and remember things 🧠.</p>
+  </div>
+</div>
+
+<div id="bar">
+  <textarea id="inp" rows="1" placeholder="Message Agent KH…"></textarea>
+  <button id="send">➤</button>
+</div>
+
+<div id="sheet">
+  <div id="panel">
+    <h3>⚙️ Settings</h3>
+    <label>Gemini API Key <span style="color:#ff8a8a">(stored only on this device)</span></label>
+    <input type="password" id="apikey" placeholder="AIza…" autocomplete="off">
+    <div id="keystat"></div>
+    <label>Model</label>
+    <select id="model">
+      <option value="gemini-3.5-flash">gemini-3.5-flash</option>
+      <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
+    </select>
+    <label>Your name (optional)</label>
+    <input type="text" id="username" placeholder="e.g. Nikan">
+    <div class="row">
+      <button class="btn primary" id="btn-save">Save</button>
+      <button class="btn ghost" id="btn-close">Close</button>
+    </div>
+    <div class="row">
+      <button class="btn danger" id="btn-clear">🗑 Clear chat history</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

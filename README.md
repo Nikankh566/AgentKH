@@ -123,6 +123,14 @@ tar -xzf AgentKH-Linux.tar.gz
 Download **AgentKH-macOS.zip**, extract and run `AgentKH/AgentKH`.
 > If macOS blocks it: right-click → Open (unsigned app, first launch only).
 
+### 📱 Android
+
+Download **AgentKH-Android.apk** and install it on your phone.
+Open the app → ⚙️ → paste your **Gemini API key** (free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)) → chat!
+
+Your key stays on your device — it's never sent anywhere except Google's API.
+The mobile agent can chat, save notes 📝, set reminders ⏰, remember facts 🧠 and fetch web pages 🌐.
+
 ## 🎮 Using it
 
 | What you do | What happens |
@@ -143,6 +151,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v5.2** — 📱 **Android app!** Agentic chat in your pocket — bring your own Gemini API key
 - **v5.1** — 🐧 Linux + 🍎 macOS builds! (Qt edition on Linux, native WKWebView on Mac)
 - **v5.0** — **Qt edition** 🖥️: same app, zero WebView2 dependency (bundled Chromium)
 - **v4.4.1** — startup hardening: clean error dialog if WebView2 is missing
