@@ -34,6 +34,10 @@ No browser tabs, no terminal windows, no fuss.
 
 *When he needs permission, the island glows orange and asks you.*
 
+<img src="docs/media/dynamic-island.gif" width="360" alt="Dynamic Island morphing">
+
+*Like iPhone's Dynamic Island — it shrinks to a mini pill when idle, springs open with live activities: equalizer when speaking 🔊, spinner when working ⚙️, countdown during pomodoro 🍅.*
+
 <img src="docs/media/panel.png" width="640" alt="Chat panel with approval card">
 
 *Click the island — it springs open. Chat with markdown, live activity, approval cards.*
@@ -123,6 +127,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v4.4** — Dynamic Island 🏝️: morphs mini/compact, live activities (speaking 🔊, working ⚙️, pomodoro 🍅)
 - **v4.3** — chat history 💾, mochi colors 🎨, personality presets 🎭, pomodoro timer ⏱️
 - **v4.2** — speaks replies 🔊, reminders ⏰, quick notes 📝, pin-on-top 📌, **32-bit builds**
 - **v4.1** — voice input 🎤, file attachments 📎, theme colors 🎨, quick actions, chat export 💾

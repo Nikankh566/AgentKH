@@ -23,17 +23,52 @@
   #island {
     pointer-events: auto;
     margin-top: 6px;
-    height: 62px; min-width: 210px;
+    height: 62px; width: 230px;
     background: #0b0b0d;
     border: 1px solid #2a2a32;
     border-radius: 34px;
     display: flex; align-items: center;
-    padding: 0 22px 0 10px; gap: 10px;
+    padding: 0 18px 0 10px; gap: 10px;
     cursor: pointer;
     box-shadow: 0 4px 24px rgba(0,0,0,.55);
-    transition: transform .18s ease, border-color .25s, box-shadow .25s;
+    /* dynamic-island spring morph */
+    transition: width .5s cubic-bezier(.3,1.4,.35,1), padding .5s cubic-bezier(.3,1.4,.35,1),
+                border-color .25s, box-shadow .25s, transform .18s ease;
     animation: slideDown .55s cubic-bezier(.2,1.4,.4,1);
+    overflow: hidden;
+    white-space: nowrap;
   }
+  /* mini mode — just the buddy, like the island at rest */
+  #island.mini { width: 78px; padding: 0 8px 0 8px; gap: 0; }
+  #island.mini #island-label, #island.mini .live-act { opacity: 0; width: 0; margin: 0; }
+  #island-label {
+    font-size: 14px; font-weight: 600; letter-spacing: .2px; white-space: nowrap;
+    transition: opacity .3s, width .4s;
+    overflow: hidden;
+  }
+  #island-label .dim { color: #8a8fa3; font-weight: 400; }
+  /* live activity indicators */
+  .live-act {
+    display: flex; align-items: center; gap: 3px; height: 20px;
+    transition: opacity .3s; margin-left: auto;
+  }
+  .live-act .bar {
+    width: 3px; border-radius: 2px; background: var(--accent);
+    animation: eq 0.9s ease-in-out infinite;
+  }
+  .live-act .bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+  .live-act .bar:nth-child(2) { height: 16px; animation-delay: .15s; }
+  .live-act .bar:nth-child(3) { height: 11px; animation-delay: .3s; }
+  .live-act .bar:nth-child(4) { height: 14px; animation-delay: .45s; }
+  @keyframes eq { 0%,100% { transform: scaleY(.4); } 50% { transform: scaleY(1); } }
+  .live-act.spin .bar { display: none; }
+  .live-act.spin::after {
+    content: ""; width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid #33333d; border-top-color: var(--accent);
+    animation: spinny .7s linear infinite;
+  }
+  @keyframes spinny { to { transform: rotate(360deg); } }
+  .live-act.hidden { display: none; }
   #island:hover { transform: scale(1.03); }
   #island.approval {
     border-color: #ff9f2e;
@@ -289,6 +324,7 @@
       </g>
     </svg>
     <span id="island-label">Agent KH</span>
+    <span class="live-act hidden" id="live-act"><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span></span>
   </div>
 
   <div id="panel">
@@ -506,9 +542,12 @@ function onToken(t) {
   streamBuf += t;
   streamEl.innerHTML = md(streamBuf);
   chatLog.scrollTop = chatLog.scrollHeight;
+  setLiveActivity("working");
 }
 function onStreamEnd() {
   if (streamEl) { streamEl.innerHTML = md(streamBuf); speak(streamEl.innerText); streamEl = null; streamBuf = ""; saveChat(); }
+  if (!$("s-tts") || !$("s-tts").checked) setLiveActivity("none");
+  armMini();
 }
 function onSys(t, cls) { addMsg(cls || "sys", esc(t)); }
 function onAct(t) { addAct(esc(t)); }
@@ -518,6 +557,7 @@ function send() {
   let text = inp.value.trim();
   if ((!text && !attachments.length)) return;
   inp.value = "";
+  armMini();
   if (attachments.length) {
     attachments.forEach(a => { text += `\n\n[Attached file: ${a.name}]\n\`\`\`\n${a.content}\n\`\`\``; });
     attachments = []; renderAttach();
@@ -646,9 +686,35 @@ function speak(text) {
     const u = new SpeechSynthesisUtterance(text.replace(/[*_`#>\[\]()]/g, "").slice(0, 400));
     u.lang = ($("s-lang").value === "fa") ? "fa-IR" : "en-US";
     u.rate = 1.05;
+    u.onstart = () => setLiveActivity("speaking");
+    u.onend = u.onerror = () => setLiveActivity("none");
     speechSynthesis.speak(u);
   } catch(e) {}
 }
+
+/* ---------- v4.4: dynamic island ---------- */
+const islandEl = $("island"), liveAct = $("live-act");
+let miniTimer = null;
+function setIslandMode(mini) {
+  islandEl.classList.toggle("mini", !!mini);
+}
+function armMini() {
+  clearTimeout(miniTimer);
+  setIslandMode(false);
+  // shrink to mini after 25s of calm, like the island at rest
+  miniTimer = setTimeout(() => {
+    if (!panel.classList.contains("open") && !pomoTimer &&
+        mochi.dataset.mood !== "working" && mochi.dataset.mood !== "approval")
+      setIslandMode(true);
+  }, 25000);
+}
+function setLiveActivity(kind) {
+  // kind: 'none' | 'speaking' | 'working'
+  liveAct.classList.toggle("hidden", kind === "none");
+  liveAct.classList.toggle("spin", kind === "working");
+  if (kind !== "none") { setIslandMode(false); armMini(); }
+}
+islandEl.addEventListener("mouseenter", () => { setIslandMode(false); armMini(); });
 
 /* ---------- v4.3: pomodoro ---------- */
 let pomoTimer = null, pomoEnd = 0, pomoPhase = "work", pomoCount = 0;
@@ -703,6 +769,8 @@ $("upd-btn").onclick = () => api.check_updates();
 /* ---------- boot ---------- */
 armIdle();
 restoreChat();
+setIslandMode(false);
+armMini();
 setMood("idle");
 setTimeout(() => { setMood("happy"); api.sound("greeting"); setTimeout(() => setMood("idle"), 1200); }, 700);
 loadSettings();
