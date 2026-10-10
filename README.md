@@ -127,6 +127,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v4.4.1** — startup hardening: clean error dialog if WebView2 is missing
 - **v4.4** — Dynamic Island 🏝️: morphs mini/compact, live activities (speaking 🔊, working ⚙️, pomodoro 🍅)
 - **v4.3** — chat history 💾, mochi colors 🎨, personality presets 🎭, pomodoro timer ⏱️
 - **v4.2** — speaks replies 🔊, reminders ⏰, quick notes 📝, pin-on-top 📌, **32-bit builds**

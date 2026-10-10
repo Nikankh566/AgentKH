@@ -272,6 +272,13 @@ def main():
     bridge = Bridge()
     with open(UI_HTML, encoding="utf-8") as f:
         html = f.read()
+    try:
+        _run(bridge, html)
+    except Exception as e:
+        _show_webview_error(e)
+
+
+def _run(bridge, html):
     win = webview.create_window(
         "Agent KH",
         html=html,
@@ -291,10 +298,7 @@ def main():
         sw = 1280
     win.move((sw - ISLAND_W) // 2, 0)
     # JS polls for pushed events
-    try:
-        webview.start(debug=False)
-    except Exception as e:
-        _show_webview_error(e)
+    webview.start(debug=False)
 
 
 def _show_webview_error(e):
