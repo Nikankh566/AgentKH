@@ -301,20 +301,61 @@ def _run(bridge, html):
     webview.start(debug=False)
 
 
-def _show_webview_error(e):
-    """Friendly error when the WebView2 window can't start (usually missing runtime)."""
-    import ctypes
-    msg = (
-        "Agent KH couldn't open its window.\n\n"
-        "This usually means the Microsoft Edge WebView2 Runtime is not installed.\n\n"
-        "Download it free from:\n"
-        "https://developer.microsoft.com/microsoft-edge/webview2/\n"
-        "(choose 'Evergreen Standalone Installer')\n\n"
-        "After installing, run Agent KH again.\n\n"
-        "Technical detail: %s" % e
-    )
+def _webview2_version():
+    """Return installed WebView2 version string, or None."""
     try:
-        ctypes.windll.user32.MessageBoxW(None, msg, "Agent KH — WebView2 needed", 0x40)
+        import winreg
+        guid = "{F3017226-FE2A-4295-8BDF-00C573A9A29B}"
+        base = "SOFTWARE\\Microsoft\\EdgeUpdate\\Clients\\" + guid
+        candidates = [
+            (winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\" + guid),
+            (winreg.HKEY_LOCAL_MACHINE, base),
+            (winreg.HKEY_CURRENT_USER, base),
+        ]
+        for root, sub in candidates:
+            try:
+                with winreg.OpenKey(root, sub) as k:
+                    v, _ = winreg.QueryValueEx(k, "pv")
+                    if v:
+                        return v
+            except OSError:
+                pass
+    except Exception:
+        pass
+    return None
+
+
+def _show_webview_error(e):
+    """Friendly error when the WebView2 window can't start."""
+    import ctypes
+    wv = _webview2_version()
+    if wv:
+        # Installed but broken — repair, don't reinstall
+        msg = (
+            "Agent KH couldn't open its window.\n\n"
+            "WebView2 Runtime %s is installed, but it seems broken.\n\n"
+            "Try this:\n"
+            "1. Settings → Apps → 'Microsoft Edge WebView2 Runtime'\n"
+            "   → ⋯ → Modify → Repair\n"
+            "2. If that doesn't help, install the Visual C++ Redistributable:\n"
+            "   https://aka.ms/vs/17/release/vc_redist.x64.exe\n"
+            "3. Restart your PC and run Agent KH again.\n\n"
+            "Technical detail: %s" % (wv, e)
+        )
+        title = "Agent KH — WebView2 needs repair"
+    else:
+        msg = (
+            "Agent KH couldn't open its window.\n\n"
+            "This usually means the Microsoft Edge WebView2 Runtime is not installed.\n\n"
+            "Download it free from:\n"
+            "https://developer.microsoft.com/microsoft-edge/webview2/\n"
+            "(choose 'Evergreen Standalone Installer')\n\n"
+            "After installing, run Agent KH again.\n\n"
+            "Technical detail: %s" % e
+        )
+        title = "Agent KH — WebView2 needed"
+    try:
+        ctypes.windll.user32.MessageBoxW(None, msg, title, 0x40)
     except Exception:
         print(msg)
     raise SystemExit(1)
