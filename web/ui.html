@@ -317,6 +317,7 @@
         <button class="quick" id="clip-btn">📋 Clipboard</button>
         <button class="quick" data-q="What can you do? Give me a quick tour of your abilities">✨ Tour</button>
         <button class="quick" id="export-btn">💾 Export chat</button>
+        <button class="quick" id="pomodoro-btn">⏱️ Pomodoro</button>
       </div>
       <input type="file" id="file-input" style="display:none" multiple>
     </div>
@@ -346,6 +347,22 @@
           </div></div>
         <div class="field"><label><input type="checkbox" id="s-tts"> Speak replies aloud 🔊</label></div>
         <div class="field"><label><input type="checkbox" id="s-pin"> Keep window on top 📌</label></div>
+        <div class="field"><label>Mochi color</label>
+          <div id="mochi-row" style="display:flex;gap:10px;">
+            <button class="theme-dot" data-m="#fdfbf6" style="background:#fdfbf6" title="Cream"></button>
+            <button class="theme-dot" data-m="#ffd9e8" style="background:#ffd9e8" title="Pink"></button>
+            <button class="theme-dot" data-m="#d6f0ff" style="background:#d6f0ff" title="Sky"></button>
+            <button class="theme-dot" data-m="#d9f7e8" style="background:#d9f7e8" title="Mint"></button>
+            <button class="theme-dot" data-m="#fff3c4" style="background:#fff3c4" title="Lemon"></button>
+            <button class="theme-dot" data-m="#e6d9ff" style="background:#e6d9ff" title="Lavender"></button>
+          </div></div>
+        <div class="field"><label>Personality</label>
+          <div id="persona-row" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="quick" data-persona="friendly">😊 Friendly</button>
+            <button class="quick" data-persona="pro">💼 Professional</button>
+            <button class="quick" data-persona="funny">🤣 Funny</button>
+            <button class="quick" data-persona="concise">⚡ Concise</button>
+          </div></div>
         <div class="field"><label>Personality (soul.md)</label><textarea id="s-soul"></textarea></div>
         <div class="field"><label>MCP servers <span style="color:#5a5e6e">(one per line: name | command args…)</span></label>
           <textarea id="s-mcp" rows="3" style="height:64px"></textarea></div>
@@ -466,6 +483,7 @@ function addMsg(cls, html) {
   const d = document.createElement("div");
   d.className = "msg " + cls; d.innerHTML = html;
   chatLog.appendChild(d); chatLog.scrollTop = chatLog.scrollHeight;
+  saveChat();
   return d;
 }
 function addAct(html) {
@@ -490,7 +508,7 @@ function onToken(t) {
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 function onStreamEnd() {
-  if (streamEl) { streamEl.innerHTML = md(streamBuf); speak(streamEl.innerText); streamEl = null; streamBuf = ""; }
+  if (streamEl) { streamEl.innerHTML = md(streamBuf); speak(streamEl.innerText); streamEl = null; streamBuf = ""; saveChat(); }
 }
 function onSys(t, cls) { addMsg(cls || "sys", esc(t)); }
 function onAct(t) { addAct(esc(t)); }
@@ -513,7 +531,7 @@ function send() {
 }
 function slash(text) {
   const cmd = text.split(/\s+/)[0].toLowerCase();
-  if (cmd === "/new") { api.clear_history(); chatLog.innerHTML = ""; onSys("new chat started"); }
+  if (cmd === "/new") { api.clear_history(); chatLog.innerHTML = ""; try{localStorage.removeItem("agentkh_chat");}catch(e){} onSys("new chat started"); }
   else if (cmd === "/model") { api.switch_model(); }
   else if (cmd === "/screenshot") { $("chat-input").value = "Take a screenshot and tell me what you see"; send(); }
   else onSys("unknown command — try /new, /model, /screenshot", "err");
@@ -599,6 +617,7 @@ async function loadSettings() {
   $("ver-text").textContent = "v" + (await api.get_version() || "?");
   $("model-pill").textContent = "⚪ " + (cfg.gemini_model || "…").replace("gemini-", "");
   applyTheme(cfg.theme || "#7c6cf5");
+  setMochiColor(cfg.mochi_color || "#fdfbf6");
   $("s-tts").checked = !!cfg.tts;
   $("s-pin").checked = !!cfg.pinned;
   if (cfg.pinned) api.set_pinned(true);
@@ -631,7 +650,40 @@ function speak(text) {
   } catch(e) {}
 }
 
-/* ---------- v4.2: reminder popup ---------- */
+/* ---------- v4.3: pomodoro ---------- */
+let pomoTimer = null, pomoEnd = 0, pomoPhase = "work", pomoCount = 0;
+function pomoFmt(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+}
+$("pomodoro-btn").onclick = () => {
+  if (pomoTimer) {  // stop
+    clearInterval(pomoTimer); pomoTimer = null;
+    setLabel("Agent KH"); setMood("idle");
+    onSys("pomodoro stopped");
+    return;
+  }
+  pomoPhase = "work"; pomoEnd = Date.now() + 25 * 60 * 1000;
+  setMood("working"); setLabel("🍅 25:00");
+  onSys("pomodoro started — 25 min focus! (click ⏱️ again to stop)");
+  api.sound("pop");
+  pomoTimer = setInterval(() => {
+    const left = pomoEnd - Date.now();
+    setLabel((pomoPhase === "work" ? "🍅 " : "☕ ") + pomoFmt(left));
+    if (left <= 0) {
+      if (pomoPhase === "work") {
+        pomoCount++;
+        onReminder(`Pomodoro #${pomoCount} done! Take a 5-minute break ☕`);
+        pomoPhase = "break"; pomoEnd = Date.now() + 5 * 60 * 1000;
+        setMood("happy");
+      } else {
+        onReminder("Break over! Ready for another pomodoro? 🍅");
+        clearInterval(pomoTimer); pomoTimer = null;
+        setLabel("Agent KH"); setMood("idle");
+      }
+    }
+  }, 1000);
+};
 function onReminder(text) {
   const c = document.createElement("div");
   c.className = "card approval";
@@ -650,6 +702,7 @@ $("upd-btn").onclick = () => api.check_updates();
 
 /* ---------- boot ---------- */
 armIdle();
+restoreChat();
 setMood("idle");
 setTimeout(() => { setMood("happy"); api.sound("greeting"); setTimeout(() => setMood("idle"), 1200); }, 700);
 loadSettings();
@@ -718,6 +771,15 @@ $("clip-btn").onclick = async () => {
     send();
   } catch(e) { onSys("can't read clipboard — permission denied", "err"); }
 };
+function saveChat() {
+  try { localStorage.setItem("agentkh_chat", chatLog.innerHTML.slice(-50000)); } catch(e) {}
+}
+function restoreChat() {
+  try {
+    const h = localStorage.getItem("agentkh_chat");
+    if (h) { chatLog.innerHTML = h; chatLog.scrollTop = chatLog.scrollHeight; }
+  } catch(e) {}
+}
 $("export-btn").onclick = () => {
   let out = "# Agent KH chat export\n\n";
   chatLog.querySelectorAll(".msg").forEach(m => {
@@ -738,6 +800,30 @@ function applyTheme(color) {
 document.querySelectorAll(".theme-dot").forEach(d => d.onclick = () => {
   applyTheme(d.dataset.c);
   api.save_theme(d.dataset.c);
+});
+
+/* ---------- v4.3: mochi color ---------- */
+function setMochiColor(color) {
+  const body = document.querySelector("#mochi .body-group rect");
+  if (body) body.setAttribute("fill", color);
+  document.querySelectorAll("#mochi-row .theme-dot").forEach(d =>
+    d.classList.toggle("sel", d.dataset.m === color));
+}
+document.querySelectorAll("#mochi-row .theme-dot").forEach(d => d.onclick = () => {
+  setMochiColor(d.dataset.m);
+  api.save_mochi_color(d.dataset.m);
+});
+
+/* ---------- v4.3: personality presets ---------- */
+const PERSONAS = {
+  friendly: "You are Agent KH, a warm and cheerful desktop companion. Be friendly, use emojis occasionally, and make the user smile while being genuinely helpful.",
+  pro: "You are Agent KH, a professional and efficient desktop assistant. Be precise, structured, and businesslike. No fluff.",
+  funny: "You are Agent KH, a witty desktop companion with a playful sense of humor. Be funny but still get the job done.",
+  concise: "You are Agent KH, a minimalist desktop assistant. Answer in as few words as possible while staying accurate. No greetings, no filler.",
+};
+document.querySelectorAll("[data-persona]").forEach(b => b.onclick = () => {
+  $("s-soul").value = PERSONAS[b.dataset.persona];
+  onSys("personality set: " + b.textContent.trim() + " — hit Save");
 });
 </script>
 </body>

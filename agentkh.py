@@ -180,6 +180,10 @@ class Bridge:
         self.eng.config["theme"] = color
         self.eng.save_config()
 
+    def save_mochi_color(self, color):
+        self.eng.config["mochi_color"] = color
+        self.eng.save_config()
+
     def set_pinned(self, p):
         try:
             self.window.on_top = bool(p)

@@ -80,7 +80,7 @@ and updates in one click.
 </table>
 
 > **Also:** 32-bit Windows builds, voice input 🎤, file attachments 📎, themes 🎨,
-> quick actions ⚡, chat export 💾 — see the [release notes](https://github.com/Nikankh566/AgentKH/releases/latest).
+> quick actions ⚡, chat export 💾, reminders ⏰, pomodoro ⏱️ — see the [release notes](https://github.com/Nikankh566/AgentKH/releases/latest).
 
 ## 📥 Install
 
@@ -120,6 +120,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v4.3** — chat history 💾, mochi colors 🎨, personality presets 🎭, pomodoro timer ⏱️
 - **v4.2** — speaks replies 🔊, reminders ⏰, quick notes 📝, pin-on-top 📌, **32-bit builds**
 - **v4.1** — voice input 🎤, file attachments 📎, theme colors 🎨, quick actions, chat export 💾
 - **v4.0** — brand-new web UI (HTML/CSS): buttery animations, cuter character, real glow effects

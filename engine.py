@@ -57,6 +57,7 @@ DEFAULT_CONFIG = {
     "theme": "#7c6cf5",
     "tts": False,
     "pinned": False,
+    "mochi_color": "#fdfbf6",
 }
 
 STRINGS = {
