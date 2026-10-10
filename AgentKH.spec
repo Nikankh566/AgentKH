@@ -1,7 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Agent KH v2 — PyInstaller build spec (Windows)
-# Build on Windows:  pip install pyinstaller  &&  pyinstaller AgentKH.spec
-# Output: dist/AgentKH/AgentKH.exe  (single island app, no browser needed)
+# Agent KH v2 — PyInstaller build spec (Windows / macOS)
+# Build:  pip install pyinstaller  &&  pyinstaller AgentKH.spec
+# Output: dist/AgentKH/AgentKH(.exe)  (single island app, no browser needed)
+
+import platform
+
+_system = platform.system()
+_icon = 'docs/media/icon.ico' if _system == 'Windows' else None
 
 block_cipher = None
 
@@ -28,7 +33,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,   # windowed: the island IS the UI
-    icon='docs/media/icon.ico',
+    icon=_icon,
 )
 coll = COLLECT(
     exe, a.binaries, a.zipfiles, a.datas,

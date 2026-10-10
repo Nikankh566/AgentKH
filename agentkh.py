@@ -219,10 +219,19 @@ class Bridge:
         self._update_tag = tag
 
     def do_update(self):
+        import platform
         assets = getattr(self, "_update_assets", {})
         tag = getattr(self, "_update_tag", "")
-        # Qt edition updates to the Qt installer; pywebview edition to the normal one
-        prefer = "AgentKH-Qt-Setup.exe" if getattr(self, "_is_qt", False) else "AgentKH-Setup.exe"
+        system = platform.system()  # Windows | Darwin | Linux
+        # Pick the right asset per platform/edition
+        if system == "Darwin":
+            prefer = "AgentKH-macOS.zip"
+        elif system == "Linux":
+            prefer = "AgentKH-Linux.tar.gz"
+        elif getattr(self, "_is_qt", False):
+            prefer = "AgentKH-Qt-Setup.exe"
+        else:
+            prefer = "AgentKH-Setup.exe"
         url = assets.get(prefer)
         if not url:
             for n, u in assets.items():
@@ -231,6 +240,12 @@ class Bridge:
                     break
         if not url:
             self.push("updateProg('No installer found in this release.')")
+            return
+        if system != "Windows":
+            # No silent installer on macOS/Linux — point to the release page
+            self.push("updateProg(%s)" % json.dumps(
+                "Download the new version from: "
+                "https://github.com/Nikankh566/AgentKH/releases/latest"))
             return
         threading.Thread(target=self._download_update,
                          args=(url, tag), daemon=True).start()

@@ -109,6 +109,20 @@ shortcut, and starts with Windows automatically.
 
 Prefer portable? Grab **AgentKH-Windows.zip**, extract anywhere, run `AgentKH.exe`.
 
+### 🐧 Linux
+
+Download **AgentKH-Linux.tar.gz**, extract and run:
+
+```bash
+tar -xzf AgentKH-Linux.tar.gz
+./AgentKH-Qt/AgentKH-Qt
+```
+
+### 🍎 macOS (Apple Silicon)
+
+Download **AgentKH-macOS.zip**, extract and run `AgentKH/AgentKH`.
+> If macOS blocks it: right-click → Open (unsigned app, first launch only).
+
 ## 🎮 Using it
 
 | What you do | What happens |
@@ -129,6 +143,7 @@ Slash commands: `/new` · `/model` · `/screenshot`
 
 ## 🆕 What's new
 
+- **v5.1** — 🐧 Linux + 🍎 macOS builds! (Qt edition on Linux, native WKWebView on Mac)
 - **v5.0** — **Qt edition** 🖥️: same app, zero WebView2 dependency (bundled Chromium)
 - **v4.4.1** — startup hardening: clean error dialog if WebView2 is missing
 - **v4.4** — Dynamic Island 🏝️: morphs mini/compact, live activities (speaking 🔊, working ⚙️, pomodoro 🍅)

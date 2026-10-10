@@ -1,9 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Agent KH v5 — Qt edition PyInstaller build spec (Windows)
+# Agent KH v5 — Qt edition PyInstaller build spec (Windows / Linux)
 # No WebView2 needed: PyQt6 bundles its own Chromium (QtWebEngine).
-# Build on Windows:  pip install pyinstaller pyqt6 pyqt6-webengine pillow
-#                    pyinstaller AgentKH-Qt.spec
-# Output: dist/AgentKH-Qt/AgentKH-Qt.exe
+# Build:  pip install pyinstaller pyqt6 pyqt6-webengine pillow
+#         pyinstaller AgentKH-Qt.spec
+# Output: dist/AgentKH-Qt/AgentKH-Qt(.exe)
+
+import platform
+
+_system = platform.system()
+_icon = 'docs/media/icon.ico' if _system == 'Windows' else None
 
 block_cipher = None
 
@@ -32,7 +37,7 @@ exe = EXE(
     strip=False,
     upx=False,   # UPX breaks Qt DLLs — keep off
     console=False,
-    icon='docs/media/icon.ico',
+    icon=_icon,
 )
 coll = COLLECT(
     exe, a.binaries, a.zipfiles, a.datas,
